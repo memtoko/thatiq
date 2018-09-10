@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block header %}{% endblock %}
+
+{% block content %}
+  <div class="sh-flow">
+    <div class="sh-flow-content-wrap">
+      <div class="sh-flow-content">
+        <a href="/" class="sh-auth-logo">
+          {% svg_inline "images/header-logo.svg" %}
+        </a>
+        <p>Login complete. <a href="/?authComplete=true">Click to continue</a></p>
+
+        <script type="text/javascript">
+          var authResult = "{{ token }}";
+          if (!window.opener) {
+            localStorage.setItem('lastAuthResult', JSON.stringify(authResult));
+            window.location.href = '/?authComplete=true';
+          } else {
+            window.opener.authenticationComplete(authResult);
+            window.close();
+          }
+        </script>
+      </div>
+    </div>
+  </div>
+{% endblock %}

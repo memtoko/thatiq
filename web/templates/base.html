@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} - {{ app.name }}</title>
+  {% if description %}
+    <meta name="description" content="{{ description }}">
+  {% endif %}
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Fira+Sans|Ubuntu">
+  <link rel="stylesheet" href="/static/css/application.css">
+  <link rel="icon" href="/static/images/favicon.ico" />
+  {% block head_extra %}{% endblock %}
+  <body class="{{ bodyClass if bodyClass }}">
+    <div class="sh-viewport">
+
+      {% block header %}
+        {% include "shared/header.html" %}
+      {% endblock %}
+      <main class="sh-main">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </body>
+</html>

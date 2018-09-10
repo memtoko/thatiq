@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="404-page">
+    {% if app.debug %}
+      <h3>Stack Trace:</h3>
+      <pre><code>{{ error.stack }}</code></pre>
+    {% endif %}
+
+    <h1>404: Page Not Found</h1>
+    <p>This is not the web page you are looking for.</p>
+  </div>
+{% endblock %}

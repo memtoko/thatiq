@@ -1,0 +1,30 @@
+{
+  "plugins": [
+    "babel-plugin-macros",
+    [ "@babel/plugin-proposal-pipeline-operator",
+       { "proposal": "minimal" }
+    ]
+  ],
+  "env": {
+    "commonjs": {
+      "presets": [
+        ["@babel/env", {
+            "targets": {
+              "node": "current"
+            },
+            "modules": "commonjs"
+        }]
+      ]
+    },
+    "esnext": {
+      "presets": [
+        ["@babel/env", {
+          "targets": {
+            "node": "current"
+          },
+          "modules": false
+        }]
+      ]
+    }
+  }
+}

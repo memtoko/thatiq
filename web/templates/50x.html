@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="50x-page">
+    {% if app.debug %}
+      <h3>Stack Trace:</h3>
+      <pre><code>{{ error.stack }}</code></pre>
+    {% endif %}
+
+    <h2>Page unavailable</h2>
+
+    <p>We're sorry, but the requested page is currently unavailable.</p>
+
+    <p>We're messing around with things internally, and the server had a bit of a hiccup.</p>
+
+    <p>Please try again later.</p>
+  </div>
+{% endblock %}

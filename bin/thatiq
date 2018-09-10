@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+
+const path = require('path')
+
+const program = require('commander')
+const task = require('@jonggrang/task')
+
+const app = require('../dist/server')
+
+
+program.version('0.1.0')
+
+program
+  .command('runserver [config]')
+  .alias('rs')
+  .description('run server using specied config file')
+  .option('-e, --env-file <file>', '.env to parse before running the app')
+  .action(function (config, opts) {
+    config = config || path.resolve(process.cwd(), 'config', 'thatiq.conf');
+    task.launchTask(app.startServer(config, opts.envFile));
+  })
+
+program.parse(process.argv)
