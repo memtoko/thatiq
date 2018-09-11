@@ -1,4 +1,6 @@
 import pino from 'pino';
+
+import {PBKDF2PasswordHasher} from './auth/hasher';
 import {mongoConnect} from './lib/mongodb';
 import {redisConnect} from './lib/redis';
 
@@ -10,6 +12,7 @@ export class Foundation {
     this.db = mongoClient.db(settings.db.name);
     this.redis = redis;
     this.logger = makeLogger(settings.logging);
+    this.hasher = new PBKDF2PasswordHasher();
   }
 }
 

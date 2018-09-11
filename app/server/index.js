@@ -10,10 +10,11 @@ import terminus from '@godaddy/terminus';
 import * as T from '@jonggrang/task';
 import { configure as createNunjuckConf } from 'nunjucks';
 
-import {createFoundation} from './foundation';
+import {configurePassport} from './auth/passport';
 import {loadDotenv} from './config/dotenv';
 import {readConfig} from './config/parse';
 import {SVGInlineExt} from './config/template';
+import {createFoundation} from './foundation';
 import {mongoClose} from './lib/mongodb';
 import {redisQuit} from './lib/redis';
 import {defineRoutes} from './routes';
@@ -30,10 +31,11 @@ export function startServer(configFile, envFile) {
     // settings for express
     app.disable('x-powered-by');
     app.set('trust proxy', 'loopback');
-    app.locals = {
-      name: appSettings.app.name || 'Thatiq',
-      debug: appSettings.app.debug || false
-    };
+    app.locals.app = Object.create(null);
+    app.locals.app.name = appSettings.app.name || 'Thatiq';
+    app.locals.app.debug = appSettings.app.debug || false;
+
+    configurePassport(foundation);
 
     const RedisStorage = createRedisStore(session);
 
@@ -107,18 +109,18 @@ function createErrorHandler(foundation) {
 
   return function errorHandler(err, req, res, next) {
     if (res.headerSent) return next(err);
-
+    err = err | {};
     const codeStr = '' + (err.status || 500);
 
     res.log.warn({err});
 
     const task = getAllTemplateErrors(codeStr).reduce(
-      (prev, current) => prev.alt(renderErrorTemplate(res, current + '.html', error)),
+      (prev, current) => prev.alt(renderErrorTemplate(res, current + '.html', err)),
       T.raise(new Error('no template found'))
     );
 
-    T.runTask(task, (err, html) => {
-      if (err) return next(err);
+    T.runTask(task, (error, html) => {
+      if (error) return next(error);
 
       res.status(err.code || 500).send(html);
     });

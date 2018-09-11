@@ -1,6 +1,7 @@
 import {MongoClient} from 'mongodb';
 import {node} from '@jonggrang/task';
 
+import {makeDbAction} from './app-ctx';
 
 /**
  * Connect mongo client
@@ -22,4 +23,43 @@ export function mongoConnect(uri) {
  */
 export function mongoClose(client) {
   return node(client, client.close);
+}
+
+/**
+ * insert one document to given collections
+ *
+ * @param {String} coll Collection name
+ * @param {Object} docs Document to insert
+ * @returns {ReaderT}
+ */
+export function insertOne(coll, docs) {
+  return makeDbAction((db, cb) => {
+    db.collection(coll).insertOne(docs, cb);
+  });
+}
+
+/**
+ * findOne
+ *
+ * @param {String}
+ * @param {Object}
+ */
+export function findOne(coll, query, projection) {
+  return makeDbAction((db, cb) => {
+    db.collection(coll).findOne(query, projection, cb);
+  });
+}
+
+/**
+ * updateOne
+ *
+ * @param {String} coll
+ * @param {Object} filter
+ * @param {Object} update
+ * @param {Object} opts
+ */
+export function updateOne(coll, filter, update, opts) {
+  return makeDbAction((db, cb) => {
+    db.collection(coll).updateOne(filter, update, opts, cb);
+  });
 }

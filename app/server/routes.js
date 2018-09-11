@@ -1,8 +1,15 @@
+import {defineRoutes as authRoutes} from './auth/routes';
+
 /**
  * define routes
  */
 export function defineRoutes(foundation, app) {
   app.get('/', homeHandler);
+  app.get('/favicon.ico', (req, res, next) => {
+    req.url = '/static/images/favicon.ico';
+    next();
+  });
+  app.use('/auth', authRoutes(foundation));
 
   // handle not found here
   app.use(render404Page);
