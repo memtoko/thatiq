@@ -84,7 +84,7 @@ export function createUserDocument(email, plainPassword, profile, extraFields) {
  * @returns {ReaderT}
  */
 export function createSuperuserDocument(email, plainPassword, profile, extraFields) {
-  return encodeUserPassword(plainPassword)
+  return encodePassword(plainPassword)
     .map(password =>
       Object.assign({
         email,

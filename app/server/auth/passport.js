@@ -185,7 +185,7 @@ export function configurePassport(foundation) {
     } else {
       userColl.findOne({google: profile.id}, (err, existingUser) => {
         if (err) return done(err);
-        if (existingUser) done(undefined, existingUser);
+        if (existingUser) return done(undefined, existingUser);
 
         const email = profile.email || (
           Array.isArray(profile.emails) && profile.emails.length > 0
@@ -276,7 +276,7 @@ export function configurePassport(foundation) {
     } else {
       userColl.findOne({twitter: profile.id}, (err, existingUser) => {
         if (err) return done(err);
-        if (existingUser) done(undefined, existingUser);
+        if (existingUser) return done(undefined, existingUser);
 
         const email = Array.isArray(profile.emails) && profile.emails.length > 0
           ? profile.emails[0].value

@@ -33,7 +33,7 @@ build-server() {
 
 test-server() {
     command cross-env NODE_ENV=test BABEL_ENV=commonjs \
-        mocha test/index.js --require @babel/register
+        mocha test/server/index.js --require @babel/register
 }
 
 # Run a function name in the context of this script
