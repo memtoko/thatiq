@@ -16,7 +16,10 @@ export function defineRoutes(foundation) {
   const handlers = defineHandler(foundation);
 
   app.get('/facebook', passport.authenticate('facebook', {scope: ['email', 'public_profile']}));
-  app.get('/facebook/callback', passport.authenticate('facebook'), handlers.socialAuthComplete);
+  app.get('/facebook/callback',
+    passport.authenticate('facebook', {session: false}),
+    handlers.socialAuthComplete
+  );
 
   app.get('/google', passport.authenticate('google', {
     scope: [
@@ -24,10 +27,16 @@ export function defineRoutes(foundation) {
   	  'https://www.googleapis.com/auth/plus.profile.emails.read'
     ]
   }));
-  app.get('/google/callback', passport.authenticate('google'), handlers.socialAuthComplete);
+  app.get('/google/callback',
+    passport.authenticate('google', {session: false}),
+    handlers.socialAuthComplete
+  );
 
-  app.get('/twitter', passport.authenticate('twitter', {}));
-  app.get('/twitter/callback', passport.authenticate('twitter'), handlers.socialAuthComplete);
+  app.get('/twitter', passport.authenticate('twitter'));
+  app.get('/twitter/callback',
+    passport.authenticate('twitter', {session: false}),
+    handlers.socialAuthComplete
+  );
 
   return app;
 }

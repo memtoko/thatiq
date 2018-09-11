@@ -6,6 +6,7 @@ import express from 'express';
 import expressPino from 'express-pino-logger';
 import session from 'express-session';
 import createRedisStore from 'connect-redis';
+import passport from 'passport';
 import terminus from '@godaddy/terminus';
 import * as T from '@jonggrang/task';
 import { configure as createNunjuckConf } from 'nunjucks';
@@ -55,6 +56,8 @@ export function startServer(configFile, envFile) {
     }));
     app.use(expressPino({looger: foundation.looger}));
     app.use(express.static(appSettings.staticFiles.root));
+    app.use(passport.initialize());
+
     configureNunjucks(app, appSettings);
 
     defineRoutes(foundation, app);

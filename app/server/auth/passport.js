@@ -215,7 +215,7 @@ export function configurePassport(foundation) {
               ? profile.photos[0].value
               : '',
             location: profile.placesLived
-          }, {twitter: profile.id}).chain(userDocs =>
+          }, {google: profile.id}).chain(userDocs =>
             insertOne('users', userDocs)
               .map(({insertedId}) => Object.assign({}, userDocs, {
                 _id: insertedId
