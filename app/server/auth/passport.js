@@ -1,3 +1,4 @@
+import {ObjectID} from 'mongodb';
 import passport from 'passport';
 import {Strategy as FbStrategy} from 'passport-facebook';
 import {Strategy as GoogleStrategy} from 'passport-google-oauth2';
@@ -21,11 +22,12 @@ export function configurePassport(foundation) {
   const userColl = foundation.db.collection('users');
 
   passport.serializeUser = function serializeUser(user, done) {
-    done(undefined, user._id);
+    done(undefined, user._id.toHexString());
   }
 
   passport.deserializeUser = function deserializeUser(id, done) {
-    userColl.findOne({_id: id}, done);
+    if (ObjectID.isValid(id)) userColl.findOne({_id: ObjectID(id)}, done);
+    else done(undefined, false);
   }
 
   // local strategy
@@ -63,7 +65,7 @@ export function configurePassport(foundation) {
   }, (req, accessToken, refreshToken, profile, done) => {
     if (req.user) {
       // this user already login
-      userColl.finOne({facebook: profile.id}, (err, existingUser) => {
+      userColl.findOne({facebook: profile.id}, (err, existingUser) => {
         if (err) return done(err);
         if (existingUser) {
           req.flash('errors', {
