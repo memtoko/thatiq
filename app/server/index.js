@@ -32,7 +32,7 @@ export function startServer(configFile, envFile) {
 
     // settings for express
     app.disable('x-powered-by');
-    app.set('trust proxy', 'loopback');
+    app.set('trust proxy', appSettings.app.trustProxy);
     app.locals.app = Object.create(null);
     app.locals.app.name = appSettings.app.name || 'Thatiq';
     app.locals.app.debug = appSettings.app.debug || false;
@@ -45,14 +45,13 @@ export function startServer(configFile, envFile) {
     app.use(session({
       store: new RedisStorage({client: foundation.redis}),
       secret: appSettings.app.key,
-      proxy: true,
       resave: false,
       saveUninitialized: false,
+      name: appSettings.session.cookieName,
       cookie: {
-        name: appSettings.session.cookieName,
         httpOnly: appSettings.session.httpOnlyCookies,
         secure: appSettings.session.secureCookies,
-        maxAge: appSettings.session.maxAge
+        maxAge: appSettings.session.maxAge * 1000
       }
     }));
     app.use(expressFlash());

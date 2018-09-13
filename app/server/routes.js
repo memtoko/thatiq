@@ -9,16 +9,29 @@ export function defineRoutes(foundation, app) {
     req.url = '/static/images/favicon.ico';
     next();
   });
+  app.get('/test', function (req, res, next) {
+    if (!req.session._testapp) {
+      req.session._testapp = 0;
+    }
+    req.session._testapp += 1;
+
+    return res.json({ test: req.session._testapp, settings: foundation.settings });
+  });
   app.use('/auth', authRoutes(foundation));
 
   // handle not found here
   app.use(render404Page);
 }
 
-function homeHandler(_, res, next) {
+function homeHandler(req, res, next) {
   const context = {
     title: 'The number one publishing platform',
-    bodyClass: 'sh-head-transparent sh-foot-floating'
+    bodyClass: 'sh-head-transparent sh-foot-floating',
+    secure: req.secure,
+    forwarded: req.headers['x-forwarded-for'] || '',
+    ip: req.ip,
+    remote: req.connection.remoteAddress,
+    headers: JSON.stringify(req.headers)
   }
   res.render('home.html', context, (err, html) => {
     if (err) return next(err);
