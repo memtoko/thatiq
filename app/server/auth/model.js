@@ -94,3 +94,11 @@ export function createSuperuserDocument(email, plainPassword, profile, extraFiel
         isStaff: true
       }, extraFields));
 }
+
+export function renderUserAsJson(user) {
+  return {
+    id: user._id.toHexString(),
+    email: user.email,
+    profile: user.profile
+  };
+}

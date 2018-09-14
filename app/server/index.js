@@ -22,65 +22,87 @@ import {redisQuit} from './lib/redis';
 import {defineRoutes} from './routes';
 
 
+/**
+ * read appSetting from configFile, optionally give it env file
+ * to load before we parsing the config file.
+ *
+ * @property {String} configFile path to config file
+ * @property {String?} envFile path to .env file
+ * @returns {Tasks<AppSettings>}
+ */
+export function readAppSetings(configFile, envFile) {
+  return T.apSecond(
+    envFile ? loadDotenv({path: envFile}) : T.pure(null),
+    readConfig(configFile)
+  );
+}
+
+export function createApplication(foundation) {
+  const {settings, redis} = foundation;
+  const app = express();
+
+  // settings for express
+  app.disable('x-powered-by');
+  app.set('trust proxy', settings.app.trustProxy);
+  app.locals.app = Object.create(null);
+  app.locals.app.name = settings.app.name || 'Thatiq';
+  app.locals.app.debug = settings.app.debug || false;
+
+  const RedisStorage = createRedisStore(session);
+  app.use(cookieParser(settings.app.key));
+
+  app.use(session({
+    store: new RedisStorage({client: redis}),
+    secret: settings.app.key,
+    resave: false,
+    saveUninitialized: false,
+    name: settings.session.cookieName,
+    cookie: {
+      httpOnly: settings.session.httpOnlyCookies,
+      secure: settings.session.secureCookies,
+      maxAge: settings.session.maxAge * 1000
+    }
+  }));
+  app.use(expressFlash());
+
+  // logger
+  app.use(expressPino({looger: foundation.looger}));
+
+  // static file
+  app.use(express.static(settings.staticFiles.root));
+
+  configurePassport(foundation);
+  app.use(passport.initialize());
+
+  configureNunjucks(app, settings);
+
+  defineRoutes(foundation, app);
+
+  // error handler
+  app.use(createErrorHandler(foundation));
+
+  return app;
+}
+
 export function startServer(configFile, envFile) {
-  return T.co(function* () {
-    const app = express();
-    if (envFile) yield loadDotenv({path: envFile});
+  return readAppSetings(configFile, envFile)
+    .chain(createFoundation)
+    .chain(foundation => {
+      // bind and set up termination action
+      const server = createServer(createApplication(foundation));
+      terminus(server, {
+        healthChecks: {
+          '/healthcheck': createHealtCheck(foundation)
+        },
+        onSignal: createOnSignal(foundation),
+        signals: ['SIGINT', 'SIGTERM', 'SIGUSR2']
+      });
 
-    const appSettings = yield readConfig(configFile);
-    const foundation = yield createFoundation(appSettings);
-
-    // settings for express
-    app.disable('x-powered-by');
-    app.set('trust proxy', appSettings.app.trustProxy);
-    app.locals.app = Object.create(null);
-    app.locals.app.name = appSettings.app.name || 'Thatiq';
-    app.locals.app.debug = appSettings.app.debug || false;
-
-    configurePassport(foundation);
-
-    const RedisStorage = createRedisStore(session);
-
-    app.use(cookieParser(appSettings.app.key));
-    app.use(session({
-      store: new RedisStorage({client: foundation.redis}),
-      secret: appSettings.app.key,
-      resave: false,
-      saveUninitialized: false,
-      name: appSettings.session.cookieName,
-      cookie: {
-        httpOnly: appSettings.session.httpOnlyCookies,
-        secure: appSettings.session.secureCookies,
-        maxAge: appSettings.session.maxAge * 1000
-      }
-    }));
-    app.use(expressFlash());
-    app.use(expressPino({looger: foundation.looger}));
-    app.use(express.static(appSettings.staticFiles.root));
-    app.use(passport.initialize());
-
-    configureNunjucks(app, appSettings);
-
-    defineRoutes(foundation, app);
-
-    // error handler
-    app.use(createErrorHandler(foundation));
-
-    // bind and set up termination action
-    const server = createServer(app);
-    terminus(server, {
-      healthChecks: {
-        '/healthcheck': createHealtCheck(foundation)
-      },
-      onSignal: createOnSignal(foundation),
-      signals: ['SIGINT', 'SIGTERM', 'SIGUSR2']
+      // connect
+      const bindSettings = foundation.settings.bind;
+      if (bindSettings.path) return bindConnectionUnix(server, bindSettings);
+      return T.node(server, bindSettings, server.listen);
     });
-
-    // connect
-    const bindSettings = appSettings.bind;
-    if (bindSettings.path) return bindConnectionUnix(server, bindSettings);
-    return T.node(server, appSettings.bind, server.listen);
-  });
 }
 
 function createErrorHandler(foundation) {
@@ -108,6 +130,9 @@ function createErrorHandler(foundation) {
       if (item.length !== len) item += 'x'.repeat(len - item.length)
       all.push(item)
     }
+    // also include error.html just in case it's missing
+    all.push('error');
+
     return all;
   }
 

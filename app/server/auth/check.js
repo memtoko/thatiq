@@ -1,6 +1,6 @@
 import {AppCtx} from '../lib/app-ctx';
 import {signPayload, verifyPayload} from '../utils/crypto';
-
+import {renderUserAsJson} from './model';
 
 /**
  * issue JWT token
@@ -13,7 +13,7 @@ export function issueJWTWebToken(user, expiresIn) {
   return new AppCtx(app => {
     const settings = app.settings;
     return signPayload(
-      { email: user.email, profile: user.profile },
+      renderUserAsJson(user),
       settings.app.jwtKey,
       { expiresIn: expiresIn || '24h' }
     );

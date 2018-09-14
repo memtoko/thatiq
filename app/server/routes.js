@@ -1,4 +1,5 @@
 import {defineRoutes as authRoutes} from './auth/routes';
+import {defineRoutes as apiRoutes} from './api/routes';
 
 /**
  * define routes
@@ -18,7 +19,7 @@ export function defineRoutes(foundation, app) {
     return res.json({ test: req.session._testapp, settings: foundation.settings });
   });
   app.use('/auth', authRoutes(foundation));
-
+  app.use('/api/', apiRoutes(foundation));
   // handle not found here
   app.use(render404Page);
 }
