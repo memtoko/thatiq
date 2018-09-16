@@ -18,7 +18,7 @@ export function defineUserApiRoutes(foundation) {
 export function defineUsersApiHandler(foundation) {
   return {
     whoami(req, res) {
-      res.json(renderUserAsJson(req.user))
+      res.json(renderUserAsJson(req.user));
     }
   };
 }

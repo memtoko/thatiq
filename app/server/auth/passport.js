@@ -325,7 +325,7 @@ export function configurePassport(foundation) {
     secretOrKey: foundation.settings.app.jwtKey
   }, (payload, done) => {
     if (typeof payload.id === 'string' && ObjectID.isValid(payload.id)) {
-      userColl.findOne({_id: ObjectID(id)}, (err, user) => {
+      userColl.findOne({_id: ObjectID(payload.id)}, (err, user) => {
         if (err) return done(err);
         if (user) done(null, user);
         else done(null, false);

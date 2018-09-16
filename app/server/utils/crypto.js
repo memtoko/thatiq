@@ -1,5 +1,8 @@
 import * as jwt from 'jsonwebtoken';
 import {makeTask_} from '@jonggrang/task';
+import unidecode from 'unidecode';
+
+import {has} from './object';
 
 
 export const ASCII_LOWERCASE = 'abcdefghijklmnopqrstuvwxyz';
@@ -44,4 +47,37 @@ export function verifyPayload(token, secret) {
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// []
+export function safeString(str, opts) {
+  options = options || {};
+
+  if (str === null) str = '';
+
+  // Handle the £ symbol separately, since it needs to be removed before the unicode conversion.
+  str = str.replace(/£/g, '-');
+
+  // Remove non ascii characters
+  str = unidecode(str);
+
+  // Replace URL reserved chars: `@:/?#[]!$&()*+,;=` as well as `\%<>|^~£"{}` and \`
+  str = str.replace(/(\s|\.|@|:|\/|\?|#|\[|\]|!|\$|&|\(|\)|\*|\+|,|;|=|\\|%|<|>|\||\^|~|"|\{|\}|`|–|—)/g, '-')
+  // Remove apostrophes
+    .replace(/'/g, '')
+    // Make the whole thing lowercase
+    .toLowerCase();
+
+  if (!has(opts, 'importing') || !opts.importing) {
+    // Convert 2 or more dashes into a single dash
+    str = str.replace(/-+/g, '-')
+    // Remove trailing dash
+      .replace(/-$/, '')
+      // Remove any dashes at the beginning
+      .replace(/^-/, '');
+  }
+
+  str = str.trim();
+
+  return str;
 }

@@ -1,3 +1,5 @@
+const hasOwnProperty = {}.hasOwnProperty;
+
 /**
  * Extends an object with own enumerable key/value pair from others.
  *
@@ -33,6 +35,17 @@ export function mapObject(obj, fn) {
     result[key] = fn(key, obj[key]);
     return result;
   }, {});
+}
+
+/**
+ * Checks if `key` is a direct property of `object`.
+ *
+ * @param {Object} obj
+ * @param {String} key
+ * @returns {Boolean}
+ */
+export function has(obj, key) {
+  return obj != null && hasOwnProperty.call(obj, key);
 }
 
 /**
