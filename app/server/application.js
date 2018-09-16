@@ -5,7 +5,6 @@ import express from 'express';
 import expressPino from 'express-pino-logger';
 import expressFlash from 'express-flash';
 import session from 'express-session';
-import createRedisStore from 'connect-redis';
 import passport from 'passport';
 import * as T from '@jonggrang/task';
 import { configure as createNunjuckConf } from 'nunjucks';
@@ -14,6 +13,7 @@ import {configurePassport} from './auth/passport';
 import {loadDotenv} from './config/dotenv';
 import {readConfig} from './config/parse';
 import {SVGInlineExt} from './config/template';
+import {createRedisStore} from './lib/session-redis';
 import {defineRoutes} from './routes';
 
 
@@ -48,11 +48,14 @@ export function createApplication(foundation) {
   app.locals.app.name = settings.app.name || 'Thatiq';
   app.locals.app.debug = settings.app.debug || false;
 
-  const RedisStorage = createRedisStore(session);
+  // logger
+  app.use(expressPino({logger: foundation.logger}));
+
   app.use(cookieParser(settings.app.key));
 
+  const RedisStorage = createRedisStore(session);
   app.use(session({
-    store: new RedisStorage({client: redis}),
+    store: new RedisStorage({client: redis, prefix: 'thatiq:sess:'}),
     secret: settings.app.key,
     resave: false,
     saveUninitialized: false,
@@ -64,9 +67,6 @@ export function createApplication(foundation) {
     }
   }));
   app.use(expressFlash());
-
-  // logger
-  app.use(expressPino({looger: foundation.looger}));
 
   // static file
   app.use(express.static(settings.staticFiles.root));
@@ -117,10 +117,10 @@ function createErrorHandler(foundation) {
 
   return function errorHandler(err, req, res, next) {
     if (res.headerSent) return next(err);
-    err = err | {};
+    err = err || {};
     const codeStr = '' + (err.status || 500);
 
-    res.log.warn({err});
+    if (req.log === 'function') req.log.warn({err});
 
     const task = getAllTemplateErrors(codeStr).reduce(
       (prev, current) => prev.alt(renderErrorTemplate(res, current + '.html', err)),

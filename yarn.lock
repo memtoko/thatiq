@@ -648,6 +648,10 @@
   dependencies:
     base64url "^3.0.0"
 
+"@jonggrang/object@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.thatiq.com/@jonggrang%2fobject/-/object-0.1.10.tgz#0ccd821fbbbcce6d19fe8b7aeb686dab59662409"
+
 "@jonggrang/prelude@^0.1.10":
   version "0.1.10"
   resolved "https://registry.thatiq.com/@jonggrang%2fprelude/-/prelude-0.1.10.tgz#69e4bf539bed66c2247bec6e2777930f92d9635e"
@@ -1307,13 +1311,6 @@ connect-flash@0.1.x:
   version "0.1.1"
   resolved "https://registry.thatiq.com/connect-flash/-/connect-flash-0.1.1.tgz#d8630f26d95a7f851f9956b1e8cc6732f3b6aa30"
 
-connect-redis@^3.3.3:
-  version "3.3.3"
-  resolved "https://registry.thatiq.com/connect-redis/-/connect-redis-3.3.3.tgz#0fb8f370192f62da75ec7a9507807599fbe15b37"
-  dependencies:
-    debug "^3.1.0"
-    redis "^2.1.0"
-
 console-control-strings@^1.0.0, console-control-strings@~1.1.0:
   version "1.1.0"
   resolved "https://registry.thatiq.com/console-control-strings/-/console-control-strings-1.1.0.tgz#3d7cf4464db6446ea644bf4b39507f9851008e8e"
@@ -1700,10 +1697,6 @@ dot-prop@^4.1.0, dot-prop@^4.1.1:
   dependencies:
     is-obj "^1.0.0"
 
-double-ended-queue@^2.1.0-0:
-  version "2.1.0-0"
-  resolved "https://registry.thatiq.com/double-ended-queue/-/double-ended-queue-2.1.0-0.tgz#103d3527fd31528f40188130c841efdd78264e5c"
-
 duplexer3@^0.1.4:
   version "0.1.4"
   resolved "https://registry.thatiq.com/duplexer3/-/duplexer3-0.1.4.tgz#ee01dd1cac0ed3cbc7fdbea37dc0a8f1ce002ce2"
@@ -2074,6 +2067,10 @@ extsprintf@^1.2.0:
   version "1.4.0"
   resolved "https://registry.thatiq.com/extsprintf/-/extsprintf-1.4.0.tgz#e2689f8f356fad62cca65a3a91c5df5f9551692f"
 
+fast-decode-uri-component@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.thatiq.com/fast-decode-uri-component/-/fast-decode-uri-component-1.0.0.tgz#7ce10336aa4b26286fee93d71e6785ff0f596a33"
+
 fast-deep-equal@^1.0.0:
   version "1.1.0"
   resolved "https://registry.thatiq.com/fast-deep-equal/-/fast-deep-equal-1.1.0.tgz#c053477817c86b51daa853c81e059b733d023614"
@@ -2168,6 +2165,14 @@ find-cache-dir@^1.0.0:
     commondir "^1.0.1"
     make-dir "^1.0.0"
     pkg-dir "^2.0.0"
+
+find-my-way@^1.15.2:
+  version "1.15.2"
+  resolved "https://registry.thatiq.com/find-my-way/-/find-my-way-1.15.2.tgz#7e9a0627de03ad7a41959f37c9086ceb9a5f5090"
+  dependencies:
+    fast-decode-uri-component "^1.0.0"
+    safe-regex "^1.1.0"
+    semver-store "^0.3.0"
 
 find-up@^1.0.0:
   version "1.1.2"
@@ -4673,17 +4678,9 @@ redis-commands@^1.2.0:
   version "1.3.5"
   resolved "https://registry.thatiq.com/redis-commands/-/redis-commands-1.3.5.tgz#4495889414f1e886261180b1442e7295602d83a2"
 
-redis-parser@^2.4.0, redis-parser@^2.6.0:
+redis-parser@^2.4.0:
   version "2.6.0"
   resolved "https://registry.thatiq.com/redis-parser/-/redis-parser-2.6.0.tgz#52ed09dacac108f1a631c07e9b69941e7a19504b"
-
-redis@^2.1.0:
-  version "2.8.0"
-  resolved "https://registry.thatiq.com/redis/-/redis-2.8.0.tgz#202288e3f58c49f6079d97af7a10e1303ae14b02"
-  dependencies:
-    double-ended-queue "^2.1.0-0"
-    redis-commands "^1.2.0"
-    redis-parser "^2.6.0"
 
 reduce-css-calc@^2.0.0:
   version "2.1.4"
@@ -5007,6 +5004,10 @@ semver-diff@^2.0.0:
   resolved "https://registry.thatiq.com/semver-diff/-/semver-diff-2.1.0.tgz#4bbb8437c8d37e4b0cf1a68fd726ec6d645d6d36"
   dependencies:
     semver "^5.0.3"
+
+semver-store@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.thatiq.com/semver-store/-/semver-store-0.3.0.tgz#ce602ff07df37080ec9f4fb40b29576547befbe9"
 
 "semver@2 || 3 || 4 || 5", semver@^5.0.3, semver@^5.1.0, semver@^5.3.0, semver@^5.4.1, semver@^5.5.0:
   version "5.5.1"
@@ -5556,7 +5557,7 @@ unicode-property-aliases-ecmascript@^1.0.4:
   version "1.0.4"
   resolved "https://registry.thatiq.com/unicode-property-aliases-ecmascript/-/unicode-property-aliases-ecmascript-1.0.4.tgz#5a533f31b4317ea76f17d807fa0d116546111dd0"
 
-unidecode@^0.0.2:
+unidecode@^0.1.8:
   version "0.1.8"
   resolved "https://registry.thatiq.com/unidecode/-/unidecode-0.1.8.tgz#efbb301538bc45246a9ac8c559d72f015305053e"
 
