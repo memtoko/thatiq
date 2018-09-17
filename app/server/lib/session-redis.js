@@ -93,7 +93,7 @@ export function createRedisStore(session) {
 
   inherits(RedisStore, Store);
 
-    /**
+  /**
    * Fetch all sessions' Redis keys using non-blocking SCAN command
    *
    * @param {Function} fn

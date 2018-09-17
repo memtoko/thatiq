@@ -1,18 +1,24 @@
 import {defineRoutes as authRoutes} from './auth/routes';
 import {defineRoutes as apiRoutes} from './api/routes';
+import {Router} from './lib/router';
 
 
 /**
  * define routes
  */
-export function defineRoutes(foundation, app) {
-  app.get('/', homeHandler);
-  app.get('/favicon.ico', (req, res, next) => {
+export function defineRoutes(app, foundation) {
+  const router = Router();
+
+  router.get('/', homeHandler);
+  router.get('/favicon.ico', (req, res, next) => {
     req.url = '/static/images/favicon.ico';
     next();
   });
-  app.use('/auth', authRoutes(foundation));
-  app.use('/api/', apiRoutes(foundation));
+
+  router.group({path: '/auth', name: 'auth'}, authRoutes, foundation);
+  router.group({path: '/api', name: 'api'}, apiRoutes, foundation);
+
+  app.use(router);
   // handle not found here
   app.use(render404Page);
 }

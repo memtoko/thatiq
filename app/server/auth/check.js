@@ -13,7 +13,7 @@ export function issueJWTWebToken(user, expiresIn) {
   return new AppCtx(app => {
     const settings = app.settings;
     return signPayload(
-      renderUserAsJson(user),
+      {id: user._id.toHexString()},
       settings.app.jwtKey,
       { expiresIn: expiresIn || '24h' }
     );

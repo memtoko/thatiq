@@ -63,7 +63,7 @@ const RouterProto = {
     options.middlewares = this._globalMiddlewares.concat(handlers || []);
 
     if (this._groupStack.length > 0)
-      options = mergeWith(mergeGroupRouteFn, this._groupStack[this._groupStack.length - 1], options);
+      options = mergeWith(this._groupStack[this._groupStack.length - 1], options, mergeGroupRouteFn);
 
     const chain = new Chain();
     const route = new Route(options.path, methods, chain);
@@ -91,10 +91,10 @@ const RouterProto = {
     this._globalMiddlewares.push(middleware);
   },
 
-  group(opts, fn) {
+  group(opts, fn, ...args) {
     this._updateGroupStack(opts);
 
-    fn();
+    fn.apply(null, [this].concat(args));
 
     this._groupStack.pop();
   },
@@ -103,10 +103,16 @@ const RouterProto = {
     return this._base.find(method, sanitizeUrl(path), version);
   },
 
-  handle(req, res, next) {
+  handle(req, res, _next) {
     const route = this.find(req.method, req.url, req.headers['accept-version']);
     if (!route) return next();
 
+    const originalParams = req.params;
+    function next(err) {
+      // restore
+      req.params = originalParams;
+      _next(err);
+    }
     req.params = route.params;
     route.handler(req, res, next, route.store);
   },
@@ -115,7 +121,7 @@ const RouterProto = {
     const len = this._groupStack.length;
     let attributes = opts;
     if (len > 0) {
-      attributes = mergeWith(mergeGroupRouteFn, this._groupStack[len - 1], opts);
+      attributes = mergeWith(this._groupStack[len - 1], opts, mergeGroupRouteFn);
     }
 
     this._groupStack.push(attributes);
@@ -127,8 +133,8 @@ const RouterProto = {
 });
 
 function routeFactory(method) {
-  return function route(path, opts, action, ...handlers) {
-    this.on([method.toUpperCase()], path, opts, action, ...handlers);
+  return function route(path, opts, ...handlers) {
+    this.on([method.toUpperCase()], path, opts, ...handlers);
   };
 }
 

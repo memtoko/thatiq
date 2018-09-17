@@ -76,7 +76,7 @@ export function createApplication(foundation) {
 
   configureNunjucks(app, settings);
 
-  defineRoutes(foundation, app);
+  defineRoutes(app, foundation);
 
   // error handler
   app.use(createErrorHandler(foundation));

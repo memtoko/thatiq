@@ -2,7 +2,7 @@ import passport from 'passport';
 import {runTask} from '@jonggrang/task';
 
 import {issueJWTWebToken} from './check';
-import {Router} from '../lib/router';
+
 
 /**
  * Define route for auth functionality
@@ -10,21 +10,20 @@ import {Router} from '../lib/router';
  * @param {Foundation} foundation
  * @return {void}
  */
-export function defineRoutes(foundation) {
-  const app = Router();
+export function defineRoutes(router, foundation) {
   const handlers = defineHandler(foundation);
 
-  app.get('/facebook',
-    {name: 'auth.facebook'},
+  router.get('/facebook',
+    {name: 'facebook'},
     passport.authenticate('facebook', {scope: ['email', 'public_profile']}));
-  app.get('/facebook/callback',
-    {name: 'auth.facebook.callback'},
+  router.get('/facebook/callback',
+    {name: 'facebook.callback'},
     passport.authenticate('facebook', {session: false}),
     handlers.socialAuthComplete
   );
 
-  app.get('/google',
-    {name: 'auth.google'},
+  router.get('/google',
+    {name: 'google'},
     passport.authenticate('google', {
       scope: [
         'https://www.googleapis.com/auth/plus.login',
@@ -32,20 +31,18 @@ export function defineRoutes(foundation) {
       ]
     })
   );
-  app.get('/google/callback',
-    {name: 'auth.google.callback'},
+  router.get('/google/callback',
+    {name: 'google.callback'},
     passport.authenticate('google', {session: false}),
     handlers.socialAuthComplete
   );
 
-  app.get('/twitter', {name: 'auth.twitter'}, passport.authenticate('twitter'));
-  app.get('/twitter/callback',
-    {name: 'auth.twitter.callback'},
+  router.get('/twitter', {name: 'twitter'}, passport.authenticate('twitter'));
+  router.get('/twitter/callback',
+    {name: 'twitter.callback'},
     passport.authenticate('twitter', {session: false}),
     handlers.socialAuthComplete
   );
-
-  return app;
 }
 
 export function defineHandler(foundation) {

@@ -1,17 +1,16 @@
 import passport from 'passport';
 
 import {renderUserAsJson} from '../auth/model';
-import {Router} from '../lib/router';
 
 
-export function defineUserApiRoutes(foundation) {
-  const app = Router();
+export function defineUserApiRoutes(router, foundation) {
   const handlers = defineUsersApiHandler(foundation);
 
-  app.use(passport.authenticate('jwt', {session: false}));
-  app.get('/whoami', {name: 'api.users.whoami'}, handlers.whoami);
-
-  return app;
+  router.group({
+    middlewares: [passport.authenticate('jwt', {session: false})]
+  }, () => {
+    router.get('/whoami', {name: 'whoami'}, handlers.whoami);
+  });
 }
 
 export function defineUsersApiHandler(foundation) {
