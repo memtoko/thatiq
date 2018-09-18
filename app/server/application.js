@@ -3,11 +3,8 @@ import {STATUS_CODES} from 'http';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import expressPino from 'express-pino-logger';
-import expressFlash from 'express-flash';
-import session from 'express-session';
-import passport from 'passport';
 import * as T from '@jonggrang/task';
-import { configure as createNunjuckConf } from 'nunjucks';
+import {configure as createNunjuckConf} from 'nunjucks';
 
 import {configurePassport} from './auth/passport';
 import {loadDotenv} from './config/dotenv';
@@ -50,32 +47,13 @@ export function createApplication(foundation) {
 
   // logger
   app.use(expressPino({logger: foundation.logger}));
-
   app.use(cookieParser(settings.app.key));
-
-  const RedisStorage = createRedisStore(session);
-  app.use(session({
-    store: new RedisStorage({client: redis, prefix: 'thatiq:sess:'}),
-    secret: settings.app.key,
-    resave: false,
-    saveUninitialized: false,
-    name: settings.session.cookieName,
-    cookie: {
-      httpOnly: settings.session.httpOnlyCookies,
-      secure: settings.session.secureCookies,
-      maxAge: settings.session.maxAge * 1000
-    }
-  }));
-  app.use(expressFlash());
 
   // static file
   app.use(express.static(settings.staticFiles.root));
 
   configurePassport(foundation);
-  app.use(passport.initialize());
-
   configureNunjucks(app, settings);
-
   defineRoutes(app, foundation);
 
   // error handler

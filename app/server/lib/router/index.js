@@ -51,7 +51,7 @@ const RouterProto = {
     this._registry = Object.create(null);
     this._groupStack = [];
     this._anonymousHandlerCounter = 0;
-    this._globalMiddlewares = [];
+    this._useChain = new Chain();
   },
 
   on(methods, path, opts, ...handlers) {
@@ -60,7 +60,7 @@ const RouterProto = {
     else options = opts;
 
     options.path = path;
-    options.middlewares = this._globalMiddlewares.concat(handlers || []);
+    options.middlewares = handlers || [];
 
     if (this._groupStack.length > 0)
       options = mergeWith(this._groupStack[this._groupStack.length - 1], options, mergeGroupRouteFn);
@@ -88,7 +88,7 @@ const RouterProto = {
   },
 
   use(middleware) {
-    this._globalMiddlewares.push(middleware);
+    this._useChain.add(middleware);
   },
 
   group(opts, fn, ...args) {
@@ -105,16 +105,20 @@ const RouterProto = {
 
   handle(req, res, _next) {
     const route = this.find(req.method, req.url, req.headers['accept-version']);
-    if (!route) return next();
+    if (!route) return _next();
 
-    const originalParams = req.params;
-    function next(err) {
-      // restore
-      req.params = originalParams;
-      _next(err);
-    }
-    req.params = route.params;
-    route.handler(req, res, next, route.store);
+    this._useChain.run(req, res, (err) => {
+      if (err) return _next(err);
+      const originalParams = req.params;
+
+      function next(err) {
+        req.params = originalParams;
+        _next(err);
+      }
+
+      req.params = route.params;
+      route.handler(req, res, next, route.store);
+    });
   },
 
   _updateGroupStack(opts) {
