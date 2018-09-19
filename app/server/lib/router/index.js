@@ -107,16 +107,21 @@ const RouterProto = {
     const route = this.find(req.method, req.url, req.headers['accept-version']);
     if (!route) return _next();
 
+    const originalParams = req.params;
+    const originalRoute = req.route;
+
+    function next(err) {
+      req.params = originalParams;
+      req.route = originalRoute;
+      _next(err);
+    }
+
+    req.params = route.params;
+    req.route = route.store;
+
     this._useChain.run(req, res, (err) => {
-      if (err) return _next(err);
-      const originalParams = req.params;
+      if (err) return next(err);
 
-      function next(err) {
-        req.params = originalParams;
-        _next(err);
-      }
-
-      req.params = route.params;
       route.handler(req, res, next, route.store);
     });
   },

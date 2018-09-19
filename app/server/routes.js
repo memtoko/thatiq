@@ -48,7 +48,11 @@ export function defineRoutes(app, foundation) {
     router.group({path: '/auth', name: 'auth'}, authRoutes, foundation);
   });
 
-  router.group({path: '/api', name: 'api'}, apiRoutes, foundation);
+  router.group({
+    path: '/api',
+    name: 'api',
+    middlewares: [passport.initialize()]
+  }, apiRoutes, foundation);
 
   app.use(router);
   // handle not found here
