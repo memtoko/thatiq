@@ -1,6 +1,6 @@
 import passport from 'passport';
 
-import {renderUserAsJson} from '../auth/model';
+import {renderUserAsJson} from '../auth/models';
 
 
 export function defineUserApiRoutes(router, foundation) {

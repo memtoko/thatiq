@@ -62,5 +62,5 @@ export function defineHandler(foundation) {
 
   return {
     socialAuthComplete
-  }
+  };
 }

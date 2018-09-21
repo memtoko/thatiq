@@ -8,7 +8,7 @@ import {Strategy as TwitterStrategy} from 'passport-twitter';
 import {runTask} from '@jonggrang/task';
 
 import {findOne, insertOne} from '../lib/mongodb';
-import {encodePassword, checkPassword, setPassword, createUserDocument} from './model';
+import {encodePassword, checkPassword, setPassword, createUserDocument} from './models';
 import * as ucrypt from '../utils/crypto';
 
 
