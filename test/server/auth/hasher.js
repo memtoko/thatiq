@@ -4,7 +4,7 @@ import * as T from '@jonggrang/task';
 import {randomString} from '@jonggrang/cryptic';
 
 import {PBKDF2PasswordHasher} from '../../../app/server/auth/hasher'
-import {encodePassword, checkPassword} from '../../../app/server/auth/model';
+import {encodePassword, checkPassword} from '../../../app/server/auth/models';
 
 
 describe('auth hasher', function () {

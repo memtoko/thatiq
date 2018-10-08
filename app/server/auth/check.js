@@ -1,6 +1,6 @@
 import {AppCtx} from '../lib/app-ctx';
 import {signPayload, verifyPayload} from '../utils/crypto';
-import {renderUserAsJson} from './models';
+
 
 /**
  * issue JWT token

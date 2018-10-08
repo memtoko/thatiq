@@ -1,4 +1,6 @@
 import * as assert from 'assert';
+import {ObjectID} from 'mongodb';
+
 import { randomString } from '@jonggrang/cryptic';
 import { isLeft } from '@jonggrang/prelude';
 import * as T from '@jonggrang/task';
@@ -11,6 +13,7 @@ describe('auth check', function () {
     const secret = await T.toPromise(randomString(50));
     const settings = { app: { jwtKey: secret }};
     const user = {
+      _id: ObjectID(),
       email: 'test@gmail.com',
       profile: {
         name: 'test'
@@ -19,14 +22,14 @@ describe('auth check', function () {
     const token = await T.toPromise(authCheck.issueJWTWebToken(user, '1h').run({ settings }));
     const decoded = await T.toPromise(authCheck.verifyJWTWebToken(token).run({ settings }));
 
-    assert.equal(decoded.email, user.email);
-    assert.deepEqual(decoded.profile, user.profile);
+    assert.equal(decoded.id, user._id.toHexString());
   });
 
   it('unsigned jwt token should considered invalid', async function () {
     const secret = await T.toPromise(randomString(50));
     const settings = { app: { jwtKey: secret }};
     const user = {
+      _id: ObjectID(),
       email: 'test@gmail.com',
       profile: {
         name: 'test'
