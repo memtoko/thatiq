@@ -16,8 +16,9 @@ program
   .description('run server using specied config file')
   .option('-e, --env-file <file>', '.env to parse before running the app')
   .action(function (config, opts) {
-    config = config || path.resolve(process.cwd(), 'config', 'thatiq.conf');
-    task.launchTask(app.startServer(config, opts.envFile));
+    config = config || path.resolve(process.cwd(), 'connf', 'thatiq.conf');
+    const env = opts.envFile || path.resolve(process.cwd(), '.env');
+    task.launchTask(app.startServer(config, env));
   })
 
 program.parse(process.argv)

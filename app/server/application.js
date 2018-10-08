@@ -10,7 +10,6 @@ import {configurePassport} from './auth/passport';
 import {loadDotenv} from './config/dotenv';
 import {readConfig} from './config/parse';
 import {SVGInlineExt} from './config/template';
-import {createRedisStore} from './lib/session-redis';
 import {defineRoutes} from './routes';
 
 
@@ -30,6 +29,7 @@ export function readAppSetings(configFile, envFile) {
 }
 
 /**
+ * Create express application
  *
  * @param {Foundation} foundation
  * @return {Application}

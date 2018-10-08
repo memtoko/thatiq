@@ -6,8 +6,6 @@ BASEDIR="${BASH_SOURCE%/*}"
 
 if [[ -f "$BASEDIR/exec-settings.sh" ]]; then
   source "$BASEDIR/exec-settings.sh"
-elif [[ -f "$BASEDIR/exec-settings.example.sh" ]]; then
-  source "$BASEDIR/exec-settings.example.sh"
 fi
 
 # expose NPM bin
@@ -15,11 +13,9 @@ export PATH=$NODE_BIN:$NPM_BIN:$PATH
 
 # run dev server
 devserver() {
-  local POSTCSS="node-sass web/static/sass/application.scss dist/static/css/application.css"
-  POSTCSS="$POSTCSS && postcss dist/static/css/application.css -o dist/static/css/application.css"
-  command nodemon -L --watch app --watch conf --watch web \
+  command nodemon --watch app --watch conf --watch web \
     -e "js,scss,conf,html" \
-    -x "cross-env BABEL_ENV=esnext rollup --silent -c && $POSTCSS && bin/thatiq rs $1 -e $2"
+    -x "cross-env BABEL_ENV=esnext rollup --silent -c && bin/thatiq rs $1 -e $2"
 }
 
 build-css() {

@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  db:
+    image: mongo:3.6.8-stretch
+    volumes:
+      - mongodata:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodb
+      MONGO_INITDB_ROOT_PASSWORD: secret
+  redis:
+    image: redis:4.0.11-alpine
+  web:
+    build: .
+    volumes:
+      - .:/usr/local/thatiq
+      - /usr/local/thatiq/node_modules
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+volumes:
+  mongodata:
