@@ -6,7 +6,8 @@ COPY package*.json ./
 
 # install only production in production
 RUN npm install --registry https://registry.thatiq.com && \
-  npm cache clean --force
+  npm cache clean --force && \
+  rm -f .npmrc
 
 FROM node:8.12-alpine
 

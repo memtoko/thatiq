@@ -1,8 +1,34 @@
 import {pure} from '@jonggrang/task';
 
 import {AppCtx} from '../lib/app-ctx';
-import {updateOne} from '../lib/mongodb';
+import {updateOne, upsert, insertOne} from '../lib/mongodb';
 
+
+/**
+ * The collections defined here are:
+ *
+ * Embedded
+ * Profile = {
+ *  name:: String,
+ *  picture:: String,
+ *  bio: String,
+ *  web:: String
+ * }
+ *
+ * User = {
+ *  profile: Profile,
+ *  email:: String,
+ *  password:: String,
+ *  isSuperuser:: Boolean,
+ *  isStaff:: Boolean
+ * }
+ *
+ * Provider = {
+ *  name:: String,
+ *  key:: String,
+ *  user: ObjectId
+ * }
+ */
 
 /**
  * encode password
@@ -52,6 +78,37 @@ export function checkPassword(password, encoded, setter) {
           .map(() => isCorrect)
       )
   });
+}
+
+/**
+ *
+ */
+export function newUser(opts, provider) {
+  return encodePassword(opts.plainPassword)
+    .chain(password => {
+      const user = {
+        password,
+        profile: opts.profile,
+        email: opts.email,
+        isSuperuser: opts.isSuperuser,
+        isStaff: opts.isStaff,
+      };
+      return upsert('users', {email: user.email}, {$set: user});
+    })
+    .chain(([user, existingUser]) => {
+      if (!provider) return AppCtx.of(user);
+
+      const authProvider = {
+        name: provider.name,
+        key: provider.key,
+        user: user._id
+      };
+
+      return upsert('authProvider',
+        {name: provider.name, user: user._id},
+        {$set: authProvider}
+      ).map(() => user);
+    });
 }
 
 /**

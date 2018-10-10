@@ -66,8 +66,22 @@ export function updateOne(coll, filter, update, opts) {
   });
 }
 
+export function upsert(coll, query, setOp) {
+  return updateOne(coll, query, setOpts, {upsert: true})
+    .chain(result =>
+      result.matchedCount === 1 && result.modifiedCount === 1
+        ? findOne(coll, query).map(x => [x, true])
+        : findOne(coll, {_id: result.upsertedId}).map(x => [x, false])
+    );
+}
+
 /**
+ * Generate slug for given coll
  *
+ * @param {String} coll
+ * @param {String} base
+ * @param {Object} opts
+ * @returns {ReaderT}
  */
 export function generateSlug(coll, base, opts) {
   return makeDbAction((db, cb) => {
