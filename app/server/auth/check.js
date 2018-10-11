@@ -7,7 +7,7 @@ import {signPayload, verifyPayload} from '../utils/crypto';
 const AUTH_PROVIDERS = {
   google: true,
   twitter: true,
-  facebook: true
+  facebook: true,
 };
 
 export function ensureLogin(req, res, next) {
@@ -28,7 +28,7 @@ export function requireLogin(req, res, next) {
     if (req.query.action) query.action = req.query.action;
     if (req.query.source) query.source = req.query.source;
 
-    req.log.debug({provider}, 'user is not logged in redireting to provider');
+    req.log.debug({provider}, 'user is not logged in redirecting to provider');
 
     let relPath = req.format({
       query,
@@ -70,6 +70,10 @@ export function verifyJWTWebToken(token) {
     const settings = app.settings;
     return verifyPayload(token, settings.app.jwtKey);
   });
+}
+
+export function userCanAuthenticate(user) {
+  return user.isActive || user.isActive == null;
 }
 
 function getAuthProviderIfValid(req) {

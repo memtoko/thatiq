@@ -1,8 +1,8 @@
-import {pure} from '@jonggrang/task';
+import {node, pure, sequencePar_} from '@jonggrang/task';
 
 import {AppCtx} from '../lib/app-ctx';
-import {updateOne, upsert, insertOne} from '../lib/mongodb';
-
+import {updateOne, upsert} from '../lib/mongodb';
+import {unixTime} from '../utils/time';
 
 /**
  * The collections defined here are:
@@ -12,7 +12,7 @@ import {updateOne, upsert, insertOne} from '../lib/mongodb';
  *  name:: String,
  *  picture:: String,
  *  bio: String,
- *  web:: String
+ *  web:: String,
  * }
  *
  * User = {
@@ -20,7 +20,9 @@ import {updateOne, upsert, insertOne} from '../lib/mongodb';
  *  email:: String,
  *  password:: String,
  *  isSuperuser:: Boolean,
- *  isStaff:: Boolean
+ *  isStaff:: Boolean,
+ *  createdAt:: Number,
+ *  isActive:: Boolean
  * }
  *
  * Provider = {
@@ -80,22 +82,18 @@ export function checkPassword(password, encoded, setter) {
   });
 }
 
-/**
- *
- */
 export function newUser(opts, provider) {
-  return encodePassword(opts.plainPassword)
-    .chain(password => {
-      const user = {
-        password,
-        profile: opts.profile,
-        email: opts.email,
-        isSuperuser: opts.isSuperuser,
-        isStaff: opts.isStaff,
-      };
-      return upsert('users', {email: user.email}, {$set: user});
-    })
-    .chain(([user, existingUser]) => {
+  const userData = {
+    profile: opts.profile,
+    email: opts.email.toLowerCase(),
+    password: opts.password,
+    isSuperuser: opts.isSuperuser == null ? false : opts.isSuperuser,
+    isStaff: opts.isStaff == null ? false : opts.isStaff,
+    isActive: opts.isActive == null ? true : opts.isActive,
+    createdAt: unixTime()
+  };
+  return upsert('users', {email: user.email}, {$set: userData})
+    .chain(([user, isExists]) => {
       if (!provider) return AppCtx.of(user);
 
       const authProvider = {
@@ -104,7 +102,7 @@ export function newUser(opts, provider) {
         user: user._id
       };
 
-      return upsert('authProvider',
+      return upsert('authProviders',
         {name: provider.name, user: user._id},
         {$set: authProvider}
       ).map(() => user);
@@ -128,7 +126,7 @@ export function createUserDocument(email, plainPassword, profile, extraFields) {
         password,
         profile,
         isSuperuser: false,
-        isStaff: false
+        isStaff: false,
       }, extraFields));
 }
 
@@ -148,7 +146,7 @@ export function createSuperuserDocument(email, plainPassword, profile, extraFiel
         password,
         profile,
         isSuperuser: true,
-        isStaff: true
+        isStaff: true,
       }, extraFields));
 }
 
@@ -158,4 +156,30 @@ export function renderUserAsJson(user) {
     email: user.email,
     profile: user.profile
   };
+}
+
+export function createAuthIndexes(db) {
+  const providerColl = db.collection('authProviders');
+  const userColl = db.collection('users');
+
+  return sequencePar_([
+    node(
+      providerColl,
+      {name: 1, key: 1},
+      {unique: true, sparse: true},
+      providerColl.createIndex
+    ),
+    node(
+      providerColl,
+      {user: 1},
+      providerColl.createIndex
+    ),
+
+    node(
+      userColl,
+      {email: 1},
+      {unique: true},
+      userColl.createIndex
+    )
+  ]);
 }

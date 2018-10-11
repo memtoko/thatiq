@@ -46,9 +46,18 @@ export function insertOne(coll, docs) {
  * @param {String}
  * @param {Object}
  */
-export function findOne(coll, query, projection) {
+export function findOne(coll, query, options) {
   return makeDbAction((db, cb) => {
-    db.collection(coll).findOne(query, projection, cb);
+    db.collection(coll).findOne(query, options, cb);
+  });
+}
+
+/**
+ * findOneAndUpdate
+ */
+export function findOneAndUpdate(coll, query, update, options) {
+  return makeDbAction((db, cb) => {
+    db.collection(coll).findOneAndUpdate(query, update, options, cb);
   });
 }
 
@@ -66,13 +75,11 @@ export function updateOne(coll, filter, update, opts) {
   });
 }
 
-export function upsert(coll, query, setOp) {
-  return updateOne(coll, query, setOpts, {upsert: true})
-    .chain(result =>
-      result.matchedCount === 1 && result.modifiedCount === 1
-        ? findOne(coll, query).map(x => [x, true])
-        : findOne(coll, {_id: result.upsertedId}).map(x => [x, false])
-    );
+export function leanUpsert(coll, query, setOpts) {
+  return findOneAndUpdate(coll, query, setOpts, {upsert: true, returnOriginal: false})
+    .map(result => {
+
+    });
 }
 
 /**
