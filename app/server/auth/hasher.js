@@ -1,9 +1,10 @@
-import {pbkdf2, timingSafeEqual} from 'crypto';
+import {pbkdf2} from 'crypto';
 
 import {randomString} from '@jonggrang/cryptic';
 import {makeTask_, raise, pure} from '@jonggrang/task';
 
 import {NotImplementedError} from '../lib/errors';
+import {constantTimeEquals} from '../utils/crypto';
 
 
 /**
@@ -122,9 +123,7 @@ export class PBKDF2PasswordHasher extends BasePasswordHasher {
     return algorithm !== this.algorithm
       ? raise(new Error('invalid hasher algorithm'))
       : this.encode(password, salt, parseInt(iterations, 10))
-          .map(xs =>
-            timingSafeEqual(Buffer.from(encoded, 'utf8'), Buffer.from(xs, 'utf8'))
-          );
+          .map(xs => constantTimeEquals(encoded, xs));
   }
 
   safeSummary(encoded) {

@@ -4,6 +4,7 @@ import passport from 'passport';
 
 import {defineRoutes as authRoutes} from './auth/routes';
 import {defineRoutes as apiRoutes} from './api/routes';
+import {foundation} from './foundation';
 import {createRedisStore} from './lib/session-redis';
 import {Router} from './lib/router';
 
@@ -15,7 +16,7 @@ import {Router} from './lib/router';
  * @param {Foundation} foundation
  * @returns {Void}
  */
-export function defineRoutes(app, foundation) {
+export function defineRoutes(app) {
   const {settings, redis} = foundation;
   const router = Router();
   const RedisStorage = createRedisStore(session);
@@ -45,7 +46,7 @@ export function defineRoutes(app, foundation) {
       next();
     });
 
-    router.group({path: '/auth', name: 'auth'}, authRoutes, foundation);
+    router.group({path: '/auth', name: 'auth'}, authRoutes);
   });
 
   router.group({

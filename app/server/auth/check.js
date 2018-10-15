@@ -1,6 +1,4 @@
-import * as url from 'url';
-
-import {AppCtx} from '../lib/app-ctx';
+import {foundation} from '../foundation';
 import {signPayload, verifyPayload} from '../utils/crypto';
 
 
@@ -49,14 +47,12 @@ export function requireLogin(req, res, next) {
  * @returns {ReaderT}
  */
 export function issueJWTWebToken(user, expiresIn) {
-  return new AppCtx(app => {
-    const settings = app.settings;
-    return signPayload(
-      {id: user._id.toHexString()},
-      settings.app.jwtKey,
-      { expiresIn: expiresIn || '24h' }
-    );
-  });
+  const settings = foundation.settings;
+  return signPayload(
+    {id: user._id.toHexString()},
+    settings.app.jwtKey,
+    { expiresIn: expiresIn || '24h' }
+  );
 }
 
 /**
@@ -66,10 +62,8 @@ export function issueJWTWebToken(user, expiresIn) {
  * @return {ReaderT}
  */
 export function verifyJWTWebToken(token) {
-  return new AppCtx(app => {
-    const settings = app.settings;
-    return verifyPayload(token, settings.app.jwtKey);
-  });
+  const settings = foundation.settings;
+  return verifyPayload(token, settings.app.jwtKey);
 }
 
 export function userCanAuthenticate(user) {

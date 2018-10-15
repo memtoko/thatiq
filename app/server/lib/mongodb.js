@@ -1,9 +1,10 @@
 import {MongoClient} from 'mongodb';
-import {node} from '@jonggrang/task';
+import {node, makeTask_} from '@jonggrang/task';
 
-import {makeDbAction} from './app-ctx';
+import {foundation} from '../foundation';
 import {safeString} from '../utils/crypto';
 import {has} from '../utils/object';
+
 
 /**
  * Connect mongo client
@@ -35,8 +36,8 @@ export function mongoClose(client) {
  * @returns {ReaderT}
  */
 export function insertOne(coll, docs) {
-  return makeDbAction((db, cb) => {
-    db.collection(coll).insertOne(docs, cb);
+  return makeTask_(cb => {
+    foundation.db.collection(coll).insertOne(docs, cb);
   });
 }
 
@@ -47,8 +48,8 @@ export function insertOne(coll, docs) {
  * @param {Object}
  */
 export function findOne(coll, query, options) {
-  return makeDbAction((db, cb) => {
-    db.collection(coll).findOne(query, options, cb);
+  return makeTask_((cb) => {
+    foundation.db.collection(coll).findOne(query, options, cb);
   });
 }
 
@@ -56,8 +57,8 @@ export function findOne(coll, query, options) {
  * findOneAndUpdate
  */
 export function findOneAndUpdate(coll, query, update, options) {
-  return makeDbAction((db, cb) => {
-    db.collection(coll).findOneAndUpdate(query, update, options, cb);
+  return makeTask_((cb) => {
+    foundation.db.collection(coll).findOneAndUpdate(query, update, options, cb);
   });
 }
 
@@ -70,16 +71,14 @@ export function findOneAndUpdate(coll, query, update, options) {
  * @param {Object} opts
  */
 export function updateOne(coll, filter, update, opts) {
-  return makeDbAction((db, cb) => {
-    db.collection(coll).updateOne(filter, update, opts, cb);
+  return makeTask_((db, cb) => {
+    foundation.db.collection(coll).updateOne(filter, update, opts, cb);
   });
 }
 
-export function leanUpsert(coll, query, setOpts) {
+export function upsert(coll, query, setOpts) {
   return findOneAndUpdate(coll, query, setOpts, {upsert: true, returnOriginal: false})
-    .map(result => {
-
-    });
+    .map(result => result.value);
 }
 
 /**
@@ -91,14 +90,14 @@ export function leanUpsert(coll, query, setOpts) {
  * @returns {ReaderT}
  */
 export function generateSlug(coll, base, opts) {
-  return makeDbAction((db, cb) => {
+  return makeTask_((cb) => {
     let slug, slugTryCount = 1, baseName = coll, longSlug;
 
     function checkIfSlugExists(slugToFind, done) {
       let args = {slug: slugToFind};
       if (opts.status) args.status = opts.status;
 
-      db.collection(coll).findOne(args, (err, found) => {
+      foundation.db.collection(coll).findOne(args, (err, found) => {
         if (err) return done(err);
 
         if (!found) return done(null, slugToFind);

@@ -4,10 +4,9 @@ import * as T from '@jonggrang/task';
 import terminus from '@godaddy/terminus';
 
 import {readAppSetings, createApplication} from './application';
-import {createFoundation} from './foundation';
+import {installFoundation, foundation} from './foundation';
 import {mongoClose} from './lib/mongodb';
 import {redisQuit} from './lib/redis';
-
 
 /**
  * Start thatiq server
@@ -18,15 +17,15 @@ import {redisQuit} from './lib/redis';
  */
 export function startServer(configFile, envFile) {
   return readAppSetings(configFile, envFile)
-    .chain(createFoundation)
-    .chain(foundation => {
+    .chain(installFoundation)
+    .chain(() => {
       // bind and set up termination action
-      const server = createServer(createApplication(foundation));
+      const server = createServer(createApplication());
       terminus(server, {
         healthChecks: {
-          '/healthcheck': createHealtCheck(foundation)
+          '/healthcheck': healthChecks
         },
-        onSignal: createOnSignal(foundation),
+        onSignal: onSignal,
         signals: ['SIGINT', 'SIGTERM', 'SIGUSR2']
       });
 
@@ -37,25 +36,20 @@ export function startServer(configFile, envFile) {
     });
 }
 
-function createHealtCheck(foundation) {
-  const {redis, db} = foundation;
-  const admin = db.admin();
-  return function healthcheck() {
-    return T.toPromise(T.sequencePar_([
-      T.fromPromise(admin, admin.ping),
-      redis.status === 'ready' ? T.pure(void 0) : T.raise(new Error('not ready'))
-    ]));
-  };
+function healthChecks() {
+  const admin = foundation.db.admin();
+  return T.toPromise(T.sequencePar_([
+    T.fromPromise(admin, admin.ping),
+    redis.status === 'ready' ? T.pure(void 0) : T.raise(new Error('not ready'))
+  ]))
 }
 
-function createOnSignal(foundation) {
+function onSignal() {
   const {redis, mongoClient} = foundation;
-  return function onSignal() {
-    return T.toPromise(T.sequencePar_([
-      mongoClose(mongoClient),
-      redisQuit(redis)
-    ]));
-  };
+  return T.toPromise(T.sequencePar_([
+    mongoClose(mongoClient),
+    redisQuit(redis)
+  ]));
 }
 
 /**

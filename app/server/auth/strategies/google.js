@@ -5,27 +5,25 @@ import {randomString} from '../../utils/crypto';
 import {encodePassword, newUser} from '../models';
 
 
-export function twitterCallback(req, token, tokenSecret, profile, done) {
+export function googleCallback(req, accessToken, requestToken, profile, done) {
   const userColl = foundation.db.collection('users');
   const providerColl = foundation.db.collection('authProviders');
 
-  providerColl.findOne({name: 'twitter', key: profile.id}, (err, existingProvider) => {
+  providerColl.findOne({name: 'google', key: profile.id}, (err, existingProvider) => {
     if (err) return done(err);
-    // the user is logged in but we found the the auth provider, so bail out
+
     if (req.user && existingProvider) {
       req.flash('errors', {
-        msg: ('There is already a Twiter account that belongs to you.' +
+        msg: ('There is already a Google account that belongs to you.' +
           'Sign in with that account or delete it, then link it with your current account.')
       });
       return done(null, false);
     }
 
-    // the user logged in but we don't find auth provider, so link this user with
-    // this authProvider
     if (req.user && !existingProvider) {
       return providerColl.findOneAndUpdate(
-        {name: 'twitter', key: profile.id},
-        {$set: {name: 'twitter', key: profile.id, user: req.user._id}},
+        {name: 'google', key: profile.id},
+        {$set: {name: 'google', key: profile.id, user: req.user._id}},
         {upsert: true, returnOriginal: false},
         (err) => {
           if (err) return done(err);
@@ -34,31 +32,29 @@ export function twitterCallback(req, token, tokenSecret, profile, done) {
       });
     }
 
-    // found provider and user still not logged in, let it login
     if (!req.user && existingProvider) {
       return userColl.findOne({_id: existingProvider.user}, (err, existingUser) => {
         if (err) return done(err);
+
         if (!existingUser) {
           req.log.warn({
             message: 'found provider auth but can\'t find the associate user',
-            providerName: 'twitter',
+            providerName: 'google',
             providerId: existingProvider._id.toHexString()
           });
           return done(null, false);
         }
 
-        return done(null, existingUser);
+        done(null, existingUser);
       });
     }
 
-    // both req.user and provider not found, so create new user
-    const email = Array.isArray(profile.emails) && profile.emails.length > 0
-      ? profile.emails[0].value.toLowerCase()
-      : '';
+    const email = profile.email || (
+      Array.isArray(profile.emails) && profile.emails.length > 0
+        ? profile.emails[0].value
+        : '');
 
-    // Twitter api require permission to read email. So, make sure we sent request
-    // to Twitter
-    if (email === '') return done(new Error('cant get email from Twitter API'));
+    if (email === '') return done(new Error('cant get email from Google API'));
 
     userColl.findOne({email}, (err, existingEmailUser) => {
       if (err) return done(err);
@@ -66,31 +62,29 @@ export function twitterCallback(req, token, tokenSecret, profile, done) {
       if (existingEmailUser) {
         req.flash('errors', {
           msg: ('There is already an account using this email address.' +
-            'Sign in to that account and link it with Twitter manually from Account Settings.')
+            'Sign in to that account and link it with Google manually from Account Settings.')
           }
         );
         return done(null, false);
       }
 
-      const tasks = randomString(32)
+      const task = randomString(32)
         .chain(encodePassword)
-        .chain(password => {
-          return newUser({
+        .chain(password =>
+          newUser({
             email,
             password,
             profile: {
-              name: profile.displayName,
-              picture: Array.isArray(profile.photos) && profile.photos.length > 0
-                ? profile.photos[0].value
-                : '',
+              name: user.profile.name || profile.displayName,
+              picture: user.profile.picture || (
+                Array.isArray(profile.photos) && profile.photos.length > 0
+                  ? profile.photos[0].value
+                  : '')
             }
-          }, {
-            name: 'twitter',
-            key: profile.id
-          })
-        });
+          }, {name: 'facebook', key: profile.id})
+        );
 
-      runTask(tasks, done);
+      runTask(task, done);
     })
   });
 }

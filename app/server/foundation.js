@@ -6,15 +6,19 @@ import {redisConnect} from './lib/redis';
 
 
 export class Foundation {
-  constructor(settings, mongoClient, redis) {
+  constructor(settings) {
     this.settings = settings;
-    this.mongoClient = mongoClient;
-    this.db = mongoClient.db(settings.db.name);
-    this.redis = redis;
-    this.logger = makeLogger(settings.logging);
+    // this.mongoClient = mongoClient;
+    // this.db = mongoClient.db(settings.db.name);
+    this.redis = null;
+    this.mongoClient = null;
+    this.db = null;
+    this.logger = null;
     this.hasher = new PBKDF2PasswordHasher();
   }
 }
+
+export const foundation = new Foundation({});
 
 /**
  * create our app foundation
@@ -23,13 +27,17 @@ export class Foundation {
  * @return {Task}
  * @sig Object -> Task Foundation
  */
-export function createFoundation(appSettings) {
+export function installFoundation(appSettings) {
+  foundation.settings = appSettings;
   return mongoConnect(appSettings.db.mongoURI)
     .chain(client =>
       redisConnect(appSettings.db.redisURI)
-        .map(redis =>
-          new Foundation(appSettings, client, redis)
-        ));
+        .map(redis => {
+          foundation.redis = redis;
+          foundation.mongoClient = client;
+          foundation.db = client.db(appSettings.db.name);
+          foundation.logger = makeLogger(appSettings.logger);
+        }));
 }
 
 /**

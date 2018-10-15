@@ -1,8 +1,9 @@
 import {node, pure, sequencePar_} from '@jonggrang/task';
 
-import {AppCtx} from '../lib/app-ctx';
+import {foundation} from '../foundation';
 import {updateOne, upsert} from '../lib/mongodb';
 import {unixTime} from '../utils/time';
+
 
 /**
  * The collections defined here are:
@@ -36,14 +37,12 @@ import {unixTime} from '../utils/time';
  * encode password
  *
  * @param {String} plainPassword
- * @return {ReaderT}
+ * @return {Task}
  */
 export function encodePassword(plainPassword) {
-  return new AppCtx(app => {
-    const hasher = app.hasher;
-    return hasher.salt()
-      .chain(salt => hasher.encode(plainPassword, salt));
-  });
+  const hasher = foundation.hasher;
+  return hasher.salt()
+    .chain(salt => hasher.encode(plainPassword, salt));
 }
 
 /**
@@ -51,7 +50,7 @@ export function encodePassword(plainPassword) {
  *
  * @param {ObjectId} id
  * @param {String} plainPassword
- * @return {ReaderT}
+ * @return {Task}
  */
 export function setPassword(id, plainPassword) {
   return encodePassword(plainPassword)
@@ -65,21 +64,19 @@ export function setPassword(id, plainPassword) {
  * @param {String} password
  * @param {String} encoded
  * @param {Function} setter
- * @return {ReaderT}
- * @sig String -> String -> (String -> ReaderT App Task void) -> ReaderT App Task Bool
+ * @return {Task}
+ * @sig String -> String -> (String -> Task void) -> Task Bool
  */
 export function checkPassword(password, encoded, setter) {
-  return new AppCtx(app => {
-    const hasher = app.hasher;
-    return hasher.verify(password, encoded)
-      .chain(isCorrect =>
-        hasher.mustUpdate(encoded)
-          .chain(mupdated =>
-            mupdated && typeof setter === 'function' ? setter(password).run(app)
-              : pure(null))
-          .map(() => isCorrect)
-      )
-  });
+  const hasher = foundation.hasher;
+  return hasher.verify(password, encoded)
+    .chain(isCorrect =>
+      hasher.mustUpdate(encoded)
+        .chain(mupdated =>
+          mupdated && typeof setter === 'function' ? setter(password)
+            : pure(null))
+        .map(() => isCorrect)
+    );
 }
 
 export function newUser(opts, provider) {
@@ -90,11 +87,13 @@ export function newUser(opts, provider) {
     isSuperuser: opts.isSuperuser == null ? false : opts.isSuperuser,
     isStaff: opts.isStaff == null ? false : opts.isStaff,
     isActive: opts.isActive == null ? true : opts.isActive,
-    createdAt: unixTime()
   };
-  return upsert('users', {email: user.email}, {$set: userData})
-    .chain(([user, isExists]) => {
-      if (!provider) return AppCtx.of(user);
+  return upsert(
+    'users',
+    {email: user.email},
+    {$set: userData, $setOnInsert: {createdAt: unixTime()}},
+  ).chain((user) => {
+      if (!provider) return pure(user);
 
       const authProvider = {
         name: provider.name,

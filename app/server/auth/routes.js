@@ -10,8 +10,7 @@ import {issueJWTWebToken} from './check';
  * @param {Foundation} foundation
  * @return {void}
  */
-export function defineRoutes(router, foundation) {
-  const handlers = defineHandler(foundation);
+export function defineRoutes(router) {
 
   router.get('/facebook',
     {name: 'facebook'},
@@ -19,7 +18,7 @@ export function defineRoutes(router, foundation) {
   router.get('/facebook/callback',
     {name: 'facebook.callback'},
     passport.authenticate('facebook', {session: false}),
-    handlers.socialAuthComplete
+    socialAuthComplete
   );
 
   router.get('/google',
@@ -34,33 +33,27 @@ export function defineRoutes(router, foundation) {
   router.get('/google/callback',
     {name: 'google.callback'},
     passport.authenticate('google', {session: false}),
-    handlers.socialAuthComplete
+    socialAuthComplete
   );
 
   router.get('/twitter', {name: 'twitter'}, passport.authenticate('twitter'));
   router.get('/twitter/callback',
     {name: 'twitter.callback'},
     passport.authenticate('twitter', {session: false}),
-    handlers.socialAuthComplete
+    socialAuthComplete
   );
 }
 
-export function defineHandler(foundation) {
-  function socialAuthComplete(req, res, next) {
-    if (!req.user) return next();
+export function socialAuthComplete(req, res, next) {
+  if (!req.user) return next();
 
-    runTask(issueJWTWebToken(req.user, '24h').run(foundation), (err, token) => {
+  runTask(issueJWTWebToken(req.user, '24h'), (err, token) => {
+    if (err) return next(err);
+
+    res.render('auth/social-complete.html', {token}, (err, html) => {
       if (err) return next(err);
 
-      res.render('auth/social-complete.html', {token}, (err, html) => {
-        if (err) return next(err);
-
-        res.status(200).send(html);
-      });
+      res.status(200).send(html);
     });
-  }
-
-  return {
-    socialAuthComplete
-  };
+  });
 }

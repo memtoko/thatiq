@@ -10,6 +10,7 @@ import {configurePassport} from './auth/passport';
 import {loadDotenv} from './config/dotenv';
 import {readConfig} from './config/parse';
 import {SVGInlineExt} from './config/template';
+import {foundation} from './foundation';
 import {defineRoutes} from './routes';
 
 
@@ -31,11 +32,10 @@ export function readAppSetings(configFile, envFile) {
 /**
  * Create express application
  *
- * @param {Foundation} foundation
  * @return {Application}
  */
-export function createApplication(foundation) {
-  const {settings, redis} = foundation;
+export function createApplication() {
+  const {settings} = foundation;
   const app = express();
 
   // settings for express
@@ -52,17 +52,17 @@ export function createApplication(foundation) {
   // static file
   app.use(express.static(settings.staticFiles.root));
 
-  configurePassport(foundation);
+  configurePassport();
   configureNunjucks(app, settings);
-  defineRoutes(app, foundation);
+  defineRoutes(app);
 
   // error handler
-  app.use(createErrorHandler(foundation));
+  app.use(createErrorHandler());
 
   return app;
 }
 
-function createErrorHandler(foundation) {
+function createErrorHandler() {
   function renderErrorTemplate(res, tpl, error) {
     return T.makeTask_(cb => {
       const settings = foundation.settings || {};

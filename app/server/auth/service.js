@@ -1,19 +1,23 @@
-import {makeDbAction} from '../lib/app-ctx';
+import {makeTask_} from '@jonggrang/task';
+
+import {foundation} from '../foundation';
 
 /**
  * find user with provider
  */
 export function findUserWithProvider(userQuery, providerQuery, opts) {
-  return makeDbAction((db, cb) => {
-    db.collection('users')
+  return makeTask_(cb => {
+    foundation.db.collection('users')
       .aggregate([
         { $match: userQuery },
         {
           $lookup: {
             from: 'authProviders',
-            pipeline: [{$match: providerQuery}],
-            localField: '_id',
-            foreignField: 'user',
+            let: {user_id: '$_id'},
+            pipeline: [
+              {$match: providerQuery},
+              {$project: {user: 0}},
+            ],
             as: 'providers'
           }
         },
