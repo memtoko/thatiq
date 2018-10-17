@@ -42,14 +42,14 @@ export function requireLogin(req, res, next) {
 /**
  * issue JWT token
  *
- * @param {User} user
+ * @param {User|String} user
  * @param {String} expiresIn
  * @returns {ReaderT}
  */
 export function issueJWTWebToken(user, expiresIn) {
   const settings = foundation.settings;
   return signPayload(
-    {id: user._id.toHexString()},
+    {id: user !== '' ? user._id.toHexString() : ''},
     settings.app.jwtKey,
     { expiresIn: expiresIn || '24h' }
   );

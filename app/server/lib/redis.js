@@ -32,3 +32,16 @@ export function redisQuit(redis) {
     });
   });
 }
+
+/**
+ * execute redis commands
+ *
+ * @param {Redis} redis
+ * @param {Array} commands
+ * @return {Task}
+ */
+export function redisMulti(redis, commands) {
+  return makeTask_(cb => {
+    redis.multi(commands).exec(cb);
+  });
+}

@@ -29,9 +29,9 @@ export const foundation = new Foundation({});
  */
 export function installFoundation(appSettings) {
   foundation.settings = appSettings;
-  return mongoConnect(appSettings.db.mongoURI)
+  return mongoConnect(appSettings.db.uri)
     .chain(client =>
-      redisConnect(appSettings.db.redisURI)
+      redisConnect(appSettings.redis.uri)
         .map(redis => {
           foundation.redis = redis;
           foundation.mongoClient = client;
