@@ -1,4 +1,4 @@
-import {node, sequencePar_, makeTask_} from '@jonggrang/task';
+import {node, sequencePar_, makeTask_, pure} from '@jonggrang/task';
 import {foundation} from '../foundation';
 import {fromHuman} from '../utils/time';
 import * as crypt from '../utils/crypto';
@@ -22,25 +22,22 @@ import * as crypt from '../utils/crypto';
  * generate random token
  */
 export const generateToken = crypt.randomString(
-  50,
+  32,
   crypt.ASCII_LOWERCASE + crypt.ASCII_UPPERCASE + crypt.DIGITS + '-'
 );
 
 /**
  * Save authorization code in redis
- * @param {String} code
- * @param {Client} client
- * @param {String} redirectUri
- * @param {User} user
  * @returns {Task}
  */
-export function saveAuthorizationCode(code, clientId, redirectUri, userId) {
+export function saveAuthorizationCode(code, clientId, redirectUri, userId, scope) {
   return makeTask_(cb => {
     const oauthCode = {
       code,
       redirectUri,
       clientId,
-      userId
+      userId,
+      scope: Array.isArray(scope) ? scope : scope.split(' ')
     };
     const key = oauthCodeRedisKey(code);
     const expiresAt = Math.round(fromHuman('1h') / 1000.0);
@@ -54,13 +51,25 @@ export function saveAuthorizationCode(code, clientId, redirectUri, userId) {
 }
 
 /**
- * find authorization code
+ * find authorization code,
  *
  * @param {String} code
  */
 export function findAuthorizationCode(code) {
   const redis = foundation.redis;
-  return node(redis, oauthCodeRedisKey(code), redis.hgetall);
+  return node(redis, oauthCodeRedisKey(code), redis.hgetall)
+    .chain(hash => {
+      const oauthCode = parseOauthCode(hash);
+      // then delete
+      return revokeAuthorizationCode(code).map(() => oauthCode);
+    });
+}
+
+export function revokeAuthorizationCode(code) {
+  const redis = foundation.redis;
+
+  return node(redis, oauthCodeRedisKey(code), redis.del)
+    .map(result => result > 0);
 }
 
 function printOauthCode(oauthCode) {
@@ -68,10 +77,19 @@ function printOauthCode(oauthCode) {
     'code', oauthCode.code,
     'clientId', oauthCode.clientId,
     'userId', oauthCode.userId,
-    'redirectUri', oauthCode.redirectUri
+    'redirectUri', oauthCode.redirectUri,
+    'scope', oauthCode.scope.join(',')
   ]
 }
 
+function parseOauthCode(hash) {
+  if (!hash.code || !hash.clientId || !hash.userId) return null;
+
+  let ret = Object.assign({}, hash);
+  if (typeof ret.scope === 'string') ret.scope = ret.scope.split(',');
+
+  return ret;
+}
 
 export function createAuthIndexes(db) {
   const clientColl = db.collection('oauthClients');

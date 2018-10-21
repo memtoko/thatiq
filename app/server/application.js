@@ -1,5 +1,6 @@
 import {STATUS_CODES} from 'http';
 
+import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import expressPino from 'express-pino-logger';
@@ -42,6 +43,10 @@ export function createApplication() {
   // logger
   app.use(expressPino({logger: foundation.logger}));
   app.use(cookieParser(settings.key));
+
+  // body parser
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({extended: false}));
 
   // static file
   if (settings.staticFiles.serveStatic) app.use(express.static(settings.staticFiles.root));
