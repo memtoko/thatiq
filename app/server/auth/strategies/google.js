@@ -81,7 +81,7 @@ export function googleCallback(req, accessToken, requestToken, profile, done) {
                   ? profile.photos[0].value
                   : '')
             }
-          }, {name: 'facebook', key: profile.id})
+          }, {name: 'google', key: profile.id})
         );
 
       runTask(task, done);

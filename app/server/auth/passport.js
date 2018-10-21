@@ -6,7 +6,7 @@ import {Strategy as JWTStrategy, ExtractJwt} from 'passport-jwt';
 import {Strategy as LocalStrategy} from 'passport-local';
 import {Strategy as TwitterStrategy} from 'passport-twitter';
 
-import {foundation} from '../../foundation';
+import {foundation} from '../foundation';
 import * as strategies from './strategies';
 
 
@@ -58,7 +58,7 @@ export function configurePassport() {
   // jwt token
   passport.use(new JWTStrategy({
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: foundation.settings.app.jwtKey
+    secretOrKey: foundation.settings.jwtKey
   }, (payload, done) => {
     if (typeof payload.id === 'string' && ObjectID.isValid(payload.id)) {
       userColl.findOne({_id: ObjectID(payload.id)}, (err, user) => {

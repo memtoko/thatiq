@@ -18,12 +18,12 @@ ENV THATIQ_HOME="/usr/local/thatiq" \
   BABEL_ENV="esnext"
 
 WORKDIR $THATIQ_HOME
-ADD . $THATIQ_HOME
 
 # COPY
 COPY --from=builder package*.json $THATIQ_HOME/
 COPY --from=builder node_modules $THATIQ_HOME/node_modules/
 
-CMD tini -- $THATIQ_HOME/node_modules/.bin/nodemon --watch app --watch conf \
-  --watch web -e "js,scss,conf,html" \
-  -x $THATIQ_HOME/bin/thatiq rs $THATIQ_HOME/conf/dev.conf
+ENTRYPOINT ["tini", "--"]
+
+CMD $THATIQ_HOME/node_modules/.bin/nodemon --config $THATIQ_HOME/nodemon.json \
+  -x "$THATIQ_HOME/node_modules/.bin/rollup --silent -c && $THATIQ_HOME/bin/thatiq rs $THATIQ_HOME/conf/local.toml"

@@ -1,43 +1,6 @@
 import {foundation} from '../foundation';
 import {signPayload, verifyPayload} from '../utils/crypto';
-
-
-const AUTH_PROVIDERS = {
-  google: true,
-  twitter: true,
-  facebook: true,
-};
-
-export function ensureLogin(req, res, next) {
-  if (req.user) return next();
-
-  requireLogin(req, res, next);
-}
-
-export function requireLogin(req, res, next) {
-  if (req.session) {
-    res.session.returnTo = req.originalUrl;
-  }
-
-  const provider = getAuthProviderIfValid(req);
-  if (provider) {
-    let query = {};
-
-    if (req.query.action) query.action = req.query.action;
-    if (req.query.source) query.source = req.query.source;
-
-    req.log.debug({provider}, 'user is not logged in redirecting to provider');
-
-    let relPath = req.format({
-      query,
-      pathname: `/auth/login/${provider}`
-    });
-
-    res.redirect(relPath);
-  }
-
-  res.redirect('/auth/login');
-}
+import {issueToken} from './tokens';
 
 /**
  * issue JWT token
@@ -48,10 +11,14 @@ export function requireLogin(req, res, next) {
  */
 export function issueJWTWebToken(user, expiresIn) {
   const settings = foundation.settings;
-  return signPayload(
-    {id: user !== '' ? user._id.toHexString() : ''},
-    settings.app.jwtKey,
-    { expiresIn: expiresIn || '24h' }
+  const userId = user !== '' ? user._id.toHexString() : '';
+
+  return issueToken(userId, expiresIn || '24h').chain(token =>
+    signPayload(
+      {token, id: userId},
+      settings.jwtKey,
+      {expiresIn: expiresIn || '24h'}
+    )
   );
 }
 
@@ -63,19 +30,9 @@ export function issueJWTWebToken(user, expiresIn) {
  */
 export function verifyJWTWebToken(token) {
   const settings = foundation.settings;
-  return verifyPayload(token, settings.app.jwtKey);
+  return verifyPayload(token, settings.jwtKey);
 }
 
 export function userCanAuthenticate(user) {
   return user.isActive || user.isActive == null;
-}
-
-function getAuthProviderIfValid(req) {
-  const authProvider = req.query.auth_provider;
-
-  if (!AUTH_PROVIDERS[authProvider]) {
-    req.log.debug({provider: authProvider}, 'invalid auth provider');
-  }
-
-  return authProvider;
 }

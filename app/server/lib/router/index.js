@@ -1,3 +1,4 @@
+import flattenArray from 'array-flatten';
 import FindMyWay from 'find-my-way';
 import {mergeWith} from '@jonggrang/object';
 import setPrototypeOf from 'setprototypeof';
@@ -67,7 +68,7 @@ const RouterProto = {
 
     const chain = new Chain();
     const route = new Route(options.path, methods, chain);
-    handlers = options.middlewares;
+    handlers = flattenArray(options.middlewares);
 
     if (options.name) route.name = options.name;
 

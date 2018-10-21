@@ -2,7 +2,6 @@ import {node, pure, sequencePar_} from '@jonggrang/task';
 
 import {foundation} from '../foundation';
 import {updateOne, upsert} from '../lib/mongodb';
-import {unixTime} from '../utils/time';
 
 
 /**
@@ -22,7 +21,7 @@ import {unixTime} from '../utils/time';
  *  password:: String,
  *  isSuperuser:: Boolean,
  *  isStaff:: Boolean,
- *  createdAt:: Number,
+ *  createdAt:: Date,
  *  isActive:: Boolean
  * }
  *
@@ -91,7 +90,7 @@ export function newUser(opts, provider) {
   return upsert(
     'users',
     {email: user.email},
-    {$set: userData, $setOnInsert: {createdAt: unixTime()}},
+    {$set: userData, $setOnInsert: {createdAt: new Date()}},
   ).chain((user) => {
       if (!provider) return pure(user);
 

@@ -1,5 +1,6 @@
-import {parse} from 'properties';
-import {makeTask_} from '@jonggrang/task';
+import {readFile} from 'fs';
+import {parse} from 'toml';
+import {node, raise, pure} from '@jonggrang/task';
 
 
 /**
@@ -9,31 +10,14 @@ import {makeTask_} from '@jonggrang/task';
  * @return {Task}
  */
 export function readConfig(file) {
-  return makeTask_(cb => {
-    const options = {
-      path: true,
-      sections: true,
-      namespaces: true,
-      variables: true,
-      include: true,
-      reviver: configReviver,
-      vars: process.env, // the vars set to `process.env`
-    };
-
-    parse(file, options, cb);
-  });
+  return node(null, file, 'utf-8', readFile).chain(parseAndCheck);
 }
 
-function configReviver(key, value, section) {
-  if (this.isSection) return this.assert();
-
-  if (typeof value === 'string') {
-    if (value === 'on' || value === 'off') {
-      return value === 'on'; // convert to boolean
-    }
-    const values = value.split(',').map(x => x.trim());
-    return values.length === 1 ? value : values;
+function parseAndCheck(str) {
+  const config = parse(str);
+  if (config.key === "" || config.macKey === "") {
+    return raise(new Error('config.key, config.macKey should not empty'));
   }
 
-  return this.assert();
+  return pure(config);
 }

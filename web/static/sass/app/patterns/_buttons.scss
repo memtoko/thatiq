@@ -75,7 +75,7 @@ $button-colors: (
   width: 1em;
   height: 1em;
   margin-right: 0.5em;
-  fill: #fff;
+  fill: $white;
 }
 
 .sh-btn-icon {
@@ -101,7 +101,7 @@ svg.sh-btn-icon-right {
 }
 
 .sh-btn-icon svg path {
-  stroke: $white;
+  stroke: #fff;
 }
 
 .sh-btn-icon-no-margin {

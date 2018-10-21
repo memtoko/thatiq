@@ -105,7 +105,7 @@ function parse(str) {
  */
 
 function fmtShort(ms) {
-  var msAbs = Math.abs(ms);
+  const msAbs = Math.abs(ms);
   if (msAbs >= d) {
     return Math.round(ms / d) + 'd';
   }
@@ -130,7 +130,7 @@ function fmtShort(ms) {
  */
 
 function fmtLong(ms) {
-  var msAbs = Math.abs(ms);
+  const msAbs = Math.abs(ms);
   if (msAbs >= d) {
     return plural(ms, msAbs, d, 'day');
   }

@@ -12,25 +12,6 @@ export const DIGITS = '0123456789';
 export const PUNCTUATIONS = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
 
 
-/**
- * Return a unique identifier with the given `len`.
- *
- * @param {Number} length
- * @param {String} allowedChars
- */
-export function getRandomString(length, allowedChars) {
-  let buf = [],
-    chars = allowedChars || ASCII_LOWERCASE + ASCII_UPPERCASE + DIGITS,
-    charLength = chars.length,
-    i;
-
-  for (i = 0; i < length; i = i + 1) {
-    buf.push(chars[randomInt(0, charLength - 1)]);
-  }
-
-  return buf.join('');
-}
-
 export function signPayload(payload, secret, opts) {
   return makeTask_(cb => {
     jwt.sign(payload, secret, {
@@ -44,10 +25,6 @@ export function verifyPayload(token, secret) {
   return makeTask_(cb => {
     return jwt.verify(token, secret, cb);
   });
-}
-
-function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 export function randomString(len, allowedChars) {
@@ -104,10 +81,11 @@ export function randomInts(len) {
 export function constantTimeEquals(a, b) {
   // Ideally this would be a native function, so it's less sensitive to how the
   // JS engine might optimize.
-  if (a.length !== b.length) {
-    return false;
-  }
   let ret = 0;
+  if (a.length !== b.length) {
+    ret = 1;
+  }
+
   for (let i = 0; i < a.length; i++) {
     ret |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }

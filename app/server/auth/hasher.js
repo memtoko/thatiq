@@ -1,10 +1,9 @@
 import {pbkdf2} from 'crypto';
 
-import {randomString} from '@jonggrang/cryptic';
 import {makeTask_, raise, pure} from '@jonggrang/task';
 
 import {NotImplementedError} from '../lib/errors';
-import {constantTimeEquals} from '../utils/crypto';
+import {constantTimeEquals, randomString} from '../utils/crypto';
 
 
 /**

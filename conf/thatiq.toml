@@ -1,0 +1,68 @@
+# This file is serve as documentation of config file used by Thatiq application.
+# Don't use this file when starting application. Instead copy this file and make
+# necesssary edit
+name = "Thatiq"
+key = ""
+macKey = ""
+secure = true
+debug = true
+trustProxy = true
+adminPath = "/admin"
+
+[bind]
+# if you want to bind on unix socket, the value are:
+# path = "path/to/socket.sock"
+# permission = "660"
+host = "0.0.0.0"
+port = 8000
+backlog = 511
+
+[db]
+name = "thatiq"
+uri = "mongodb://localhost:27017"
+
+[redis]
+prefix = "thatiq"
+uri = "redis://localhost:6379"
+
+[mailer]
+host = "localhost"
+port = 1025
+secure = false
+pool = true
+maxConnections = 5
+maxMessages = 100
+
+[session]
+cookieName = "thatiq:session"
+httpOnlyCookies = true
+secureCookies = true
+# the maxAge of session in seconds
+maxAge = 604800
+
+[logging]
+level = "info"
+enabled = true
+prettyPrint = true
+
+[views]
+dir = "/path/projects/thatiq/templates"
+useCache = true
+watch = false
+
+[staticFiles]
+serveStatic = true
+root = '/path/to/projects/thatiq/dist'
+path = "static"
+
+[services.google]
+key = ""
+secret = ""
+
+[services.twitter]
+key = ""
+secret = ""
+
+[facebook.twitter]
+key = ""
+secret = ""

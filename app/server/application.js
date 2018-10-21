@@ -7,7 +7,6 @@ import * as T from '@jonggrang/task';
 import {configure as createNunjuckConf} from 'nunjucks';
 
 import {configurePassport} from './auth/passport';
-import {loadDotenv} from './config/dotenv';
 import {readConfig} from './config/parse';
 import {SVGInlineExt} from './config/template';
 import {foundation} from './foundation';
@@ -15,18 +14,13 @@ import {defineRoutes} from './routes';
 
 
 /**
- * read appSetting from configFile, optionally give it env file
- * to load before we parsing the config file.
+ * read appSetting from configFile
  *
  * @property {String} configFile path to config file
- * @property {String?} envFile path to .env file
  * @returns {Tasks<AppSettings>}
  */
-export function readAppSetings(configFile, envFile) {
-  return T.apSecond(
-    envFile ? loadDotenv({path: envFile}) : T.pure(null),
-    readConfig(configFile)
-  );
+export function readAppSetings(configFile) {
+  return readConfig(configFile);
 }
 
 /**
@@ -40,17 +34,17 @@ export function createApplication() {
 
   // settings for express
   app.disable('x-powered-by');
-  app.set('trust proxy', settings.app.trustProxy);
+  app.set('trust proxy', settings.trustProxy);
   app.locals.app = Object.create(null);
-  app.locals.app.name = settings.app.name || 'Thatiq';
-  app.locals.app.debug = settings.app.debug || false;
+  app.locals.app.name = settings.name || 'Thatiq';
+  app.locals.app.debug = settings.debug || false;
 
   // logger
   app.use(expressPino({logger: foundation.logger}));
-  app.use(cookieParser(settings.app.key));
+  app.use(cookieParser(settings.key));
 
   // static file
-  app.use(express.static(settings.staticFiles.root));
+  if (settings.staticFiles.serveStatic) app.use(express.static(settings.staticFiles.root));
 
   configurePassport();
   configureNunjucks(app, settings);
@@ -66,13 +60,12 @@ function createErrorHandler() {
   function renderErrorTemplate(res, tpl, error) {
     return T.makeTask_(cb => {
       const settings = foundation.settings || {};
-      const appSettings = settings.app || {};
       const context = {
         error,
         title: STATUS_CODES[error.status] || 'Internal Server Error.',
         app: {
-          name: appSettings.name || 'Thatiq',
-          debug: typeof appSettings.debug !== 'boolean' ? false : appSettings.debug
+          name: settings.name || 'Thatiq',
+          debug: typeof settings.debug !== 'boolean' ? false : settings.debug
         }
       };
       res.render(tpl, context, cb);

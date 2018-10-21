@@ -19,6 +19,7 @@ node_modules
 *.log
 coverage/
 .vscode/
+dist
 
 # IDE config files
 jsconfig.json

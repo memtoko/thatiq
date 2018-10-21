@@ -1,9 +1,9 @@
-import {makeTask_, node, raise} from '@jonggrang/task';
+import {node, raise} from '@jonggrang/task';
 
 import {foundation} from '../../foundation';
 import {redisMulti} from '../../lib/redis';
-import {unixTime} from '../../utils/time';
-import {TokenAlreadyExist, TokenDoesnotExist} from './token';
+import {unixTime, fromHuman} from '../../utils/time';
+import {TokenAlreadyExist, TokenDoesnotExist} from './error';
 
 
 export class RedisTokenProvider {
@@ -25,11 +25,17 @@ export class RedisTokenProvider {
       .map(hash => parseToken(token, hash));
   }
 
-  insert(userId, token) {
+  insert(userId, token, opts) {
     return this.get(token).chain(existingToken => {
       if (existingToken) return raise(new TokenAlreadyExist(existingToken, token));
+      opts = opts || {};
+      let ttl;
+      if (opts.expiresIn) {
+        ttl = Math.floor(fromHuman(opts.expiresIn) / 1000);
+      } else {
+        ttl = userId ? 10 * 60 : foundation.settings.session.maxAge + 60;
+      }
 
-      const ttl = userId ? 10 * 60 : foundation.settings.session.maxAge + 60;
       let hash = {
         userId,
         createdAt: unixTime()

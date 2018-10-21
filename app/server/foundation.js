@@ -36,7 +36,7 @@ export function installFoundation(appSettings) {
           foundation.redis = redis;
           foundation.mongoClient = client;
           foundation.db = client.db(appSettings.db.name);
-          foundation.logger = makeLogger(appSettings.logger);
+          foundation.logger = makeLogger(appSettings.logging);
         }));
 }
 

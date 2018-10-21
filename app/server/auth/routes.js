@@ -1,8 +1,7 @@
 import passport from 'passport';
-import {runTask} from '@jonggrang/task';
 
-import {issueJWTWebToken} from './check';
-
+import {foundation} from '../foundation';
+import {ensureLogin} from './middlewares';
 
 /**
  * Define route for auth functionality
@@ -14,16 +13,22 @@ export function defineRoutes(router) {
 
   router.get('/facebook',
     {name: 'facebook'},
-    passport.authenticate('facebook', {scope: ['email', 'public_profile']}));
+    passport.authenticate('facebook', {
+      failWithError: false,
+      scope: ['email', 'public_profile']
+    })
+  );
   router.get('/facebook/callback',
     {name: 'facebook.callback'},
-    passport.authenticate('facebook', {session: false}),
-    socialAuthComplete
+    passport.authenticate('facebook', {failWithError: false}),
+    ensureLogin,
+    redirectAfterLogin
   );
 
   router.get('/google',
     {name: 'google'},
     passport.authenticate('google', {
+      failWithError: false,
       scope: [
         'https://www.googleapis.com/auth/plus.login',
         'https://www.googleapis.com/auth/plus.profile.emails.read'
@@ -32,28 +37,30 @@ export function defineRoutes(router) {
   );
   router.get('/google/callback',
     {name: 'google.callback'},
-    passport.authenticate('google', {session: false}),
-    socialAuthComplete
+    passport.authenticate('google', {failWithError: false}),
+    ensureLogin,
+    redirectAfterLogin
   );
 
-  router.get('/twitter', {name: 'twitter'}, passport.authenticate('twitter'));
+  router.get('/twitter',
+    {name: 'twitter'},
+    passport.authenticate('twitter', {failWithError: true})
+  );
   router.get('/twitter/callback',
     {name: 'twitter.callback'},
-    passport.authenticate('twitter', {session: false}),
-    socialAuthComplete
+    passport.authenticate('twitter', {failWithError: true}),
+    ensureLogin,
+    redirectAfterLogin
   );
 }
 
-export function socialAuthComplete(req, res, next) {
-  if (!req.user) return next();
+export function redirectAfterLogin(req, res) {
+  if (req.session && req.session.returnTo) {
+    res.redirect(req.session.returnTo);
+    return;
+  }
 
-  runTask(issueJWTWebToken(req.user, '24h'), (err, token) => {
-    if (err) return next(err);
+  const user = req.user;
 
-    res.render('auth/social-complete.html', {token}, (err, html) => {
-      if (err) return next(err);
-
-      res.status(200).send(html);
-    });
-  });
+  res.redirect(user.isStaff ? foundation.settings.app.adminPath : '/');
 }

@@ -19,3 +19,14 @@ export class NotImplementedError extends Error {
     this.status = 500;
   }
 }
+
+/**
+ *
+ */
+export class ObjectDoesnotExist extends Error {
+  constructor(msg) {
+    super(msg);
+    this.code = 'EOBJECTDOESNOTEXIST';
+    this.status = 404;
+  }
+}

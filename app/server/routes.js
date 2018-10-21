@@ -25,8 +25,8 @@ export function defineRoutes(app) {
     name: 'web',
     middlewares: [
       session({
-        store: new RedisStorage({client: redis, prefix: 'thatiq:sess:'}),
-        secret: settings.app.key,
+        store: new RedisStorage({client: redis, prefix: `${settings.redis.prefix}:sess:`}),
+        secret: settings.key,
         resave: false,
         saveUninitialized: false,
         name: settings.session.cookieName,
