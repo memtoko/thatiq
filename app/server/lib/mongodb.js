@@ -1,4 +1,4 @@
-import {MongoClient} from 'mongodb';
+import {MongoClient, ObjectID} from 'mongodb';
 import {node, makeTask_} from '@jonggrang/task';
 
 import {foundation} from '../foundation';
@@ -71,7 +71,7 @@ export function findOneAndUpdate(coll, query, update, options) {
  * @param {Object} opts
  */
 export function updateOne(coll, filter, update, opts) {
-  return makeTask_((db, cb) => {
+  return makeTask_((cb) => {
     foundation.db.collection(coll).updateOne(filter, update, opts, cb);
   });
 }
@@ -79,6 +79,12 @@ export function updateOne(coll, filter, update, opts) {
 export function upsert(coll, query, setOpts) {
   return findOneAndUpdate(coll, query, setOpts, {upsert: true, returnOriginal: false})
     .map(result => result.value);
+}
+
+export function deleteMany(coll, query, opts) {
+  return makeTask_(cb => {
+    foundation.db.collection(coll).deleteMany(query, opts);
+  })
 }
 
 /**
@@ -145,4 +151,93 @@ export function generateSlug(coll, base, opts) {
 
     checkIfSlugExists(slug, cb);
   });
+}
+
+// Utility functions
+
+/**
+ *
+ */
+export function objectIDEquals(a, b) {
+  if (a === b) return true;
+  if (!a) return !b;
+  if (!b) return false;
+
+  if (typeof a === 'string') {
+    if (typeof b === 'string') {
+      return a === b;
+    }
+    // assume b is ObjectId here
+    return b.equals(a);
+  }
+
+  if (typeof b === 'string') {
+    return a.equals(b);
+  } else if (b.toHexString) {
+    return a.equals(b.toHexString());
+  } else {
+    return a.equals(b);
+  }
+}
+
+export function strToObjectId(str) {
+  if (ObjectID.isValid(str)) return new ObjectID(str);
+
+  throw new Error(`Invalid ObjectID ${str}`);
+}
+
+export function asObjectId(id) {
+  if (!id) {
+    return null;
+  }
+
+  if (typeof id === 'string') {
+    return stringToObjectID(id);
+  }
+
+  return id;
+}
+
+export function getDateFromObjectId(id) {
+  if( !id) {
+    return null;
+  }
+
+  if (typeof id === 'string') {
+    const objectId = stringToObjectID(id);
+    return objectId.getTimestamp();
+  }
+
+  return id.getTimestamp();
+}
+
+export function getTimestampFromObjectId(id) {
+  const d = getDateFromObjectId(id);
+  if(d) return d.getTime();
+
+  return null;
+}
+
+export function getNewObjectIdString() {
+  var objectId = new ObjectID();
+  return objectId.valueOf();
+}
+
+
+export function serializeObjectId(id) {
+  if (!id) return id;
+  if (typeof id === 'string') { return id; }
+  return id.toHexString();
+}
+
+export function isMongoError(err) {
+  // instanceof is not suitable since there may be multiple instances of
+  // mongo driver loaded
+  return err && err instanceof Error && err.name === 'MongoError';
+}
+
+export function mongoErrorWithCode(code) {
+  return function(err) {
+    return isMongoError(err) && err.code === code;
+  }
 }

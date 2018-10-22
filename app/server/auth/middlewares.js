@@ -15,7 +15,7 @@ export function ensureLogin(req, res, next) {
 
 export function requireLogin(req, res, next) {
   if (req.session) {
-    res.session.returnTo = req.originalUrl;
+    req.session.returnTo = req.originalUrl;
   }
 
   const provider = getAuthProviderIfValid(req);

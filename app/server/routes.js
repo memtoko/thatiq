@@ -6,6 +6,7 @@ import {defineRoutes as authRoutes} from './auth/routes';
 import {defineRoutes as apiRoutes} from './api/routes';
 import {foundation} from './foundation';
 import {createRedisStore} from './lib/session-redis';
+import {defineRoutes as oauth2Routes} from './oauth/routes';
 import {Router} from './lib/router';
 
 
@@ -47,6 +48,7 @@ export function defineRoutes(app) {
     });
 
     router.group({path: '/auth', name: 'auth'}, authRoutes);
+    router.group({path: '/oauth', name: 'oauth'}, oauth2Routes);
   });
 
   router.group({
